@@ -433,6 +433,52 @@ tr.cur td:first-child small { display: block; font-size: 11px; color: var(--ink-
 .hitos .num small { display: block; font-size: 11.5px; color: var(--ink-3); font-weight: 400; margin-top: 1px; }
 .detalle { margin-top: 16px; }
 .detalle .seg-view { margin-top: 10px; }
+
+/* Pagos del mes */
+.pagos .pg-head { padding: 12px 14px 10px; border-bottom: 1px solid var(--rule); }
+.pagos .pg-head .bar { height: 8px; border-radius: 4px; }
+.pg-txt { display: flex; justify-content: space-between; gap: 12px; margin-top: 7px; font-size: 13px; color: var(--ink-2); }
+.pg-txt b { color: var(--ink); font-weight: 600; font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+.row.pg { gap: 10px; }
+.row.pg > button.grow { appearance: none; background: none; border: 0; padding: 0; margin: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; display: block; }
+.row.pg .num { font-size: 14px; white-space: nowrap; }
+.row.pg .btn-sm { min-height: 32px; padding: 6px 11px; flex: none; }
+.row.pg.done .grow b { color: var(--ink-2); font-weight: 500; }
+.row.pg.done .num { color: var(--ink-2); }
+.day.late { border-color: var(--neg); color: var(--neg); }
+.day.ic, .day.ok-ic { display: grid; place-items: center; height: 32px; padding: 0; }
+.day.ic svg { width: 16px; height: 16px; }
+.day.ok-ic { border-color: transparent; background: var(--pos); color: var(--sheet); border-radius: 50%; width: 26px; height: 26px; }
+.day.ok-ic svg { width: 15px; height: 15px; }
+.grow small .st-over { color: var(--neg); font-weight: 600; }
+.tag.warn { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
+.num.muted { color: var(--ink-3); }
+.hero-cta { display: grid; margin-top: 14px; }
+.hero-cta .btn { width: 100%; }
+
+/* Ahorro */
+.flow .f-free { background: var(--pos); opacity: .25; }
+.sw.free { background: var(--pos); opacity: .35; }
+.mrow { padding: 12px 14px; border-bottom: 1px solid var(--rule); display: grid; gap: 8px; }
+.ledger > .mrow:last-child { border-bottom: 0; }
+.mrow-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.mname { appearance: none; background: none; border: 0; padding: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; min-width: 0; }
+.mname b { font-weight: 600; font-size: 14.5px; }
+.mrow-top .num { font-size: 14px; white-space: nowrap; }
+.mrow-top .num small { color: var(--ink-3); font-size: 12px; }
+.mrow-bot { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.mrow-bot small { font-size: 12.5px; color: var(--ink-2); }
+.ok-txt { color: var(--pos); font-weight: 600; display: inline-flex; gap: 4px; align-items: center; }
+.ok-txt svg { width: 14px; height: 14px; }
+.quick { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.quick .fchip { white-space: nowrap; }
+.sum-big { font-size: 30px; font-weight: 600; letter-spacing: -.02em; margin: 2px 0 6px; }
+.det-h { font: 600 14px var(--font-display); margin: 18px 0 0; color: var(--ink); }
+.detalle .hitos .row { padding-inline: 0; }
+.panel-b > * { min-width: 0; }
+.field { grid-template-columns: minmax(0, 1fr); }
+.amount input { width: 100%; }
+.panel-b { grid-template-columns: minmax(0, 1fr); }
 </style>
 </head>
 <body>
@@ -465,8 +511,8 @@ tr.cur td:first-child small { display: block; font-size: 11px; color: var(--ink-
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=20261001151025"></script>
-<script>window.LIBRETA_ENV = 'web'; window.LIBRETA_BUILD = '20261001151025';</script>
+<script src="firebase-config.js?v=20261001154138"></script>
+<script>window.LIBRETA_ENV = 'web'; window.LIBRETA_BUILD = '20261001154138';</script>
 <script>
 (() => {
 'use strict';
@@ -539,6 +585,7 @@ const IC = {
   prev: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>',
   next: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>',
   back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>',
+  card: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5.5" width="18" height="13" rx="2.5"/><path d="M3 10h18M7 15h4"/></svg>',
   check: '<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
   ok: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
   alert: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 7v6M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg>',
@@ -702,6 +749,7 @@ function cuotasDe(m) {
 function impactos(list) {
   const out = [];
   for (const m of list) {
+    if (m.pendiente) continue;
     const tc = tcOf(m);
     if (m.tipo === 'ingreso') out.push({ ym: ymOf(m.fecha), tipo: 'ingreso', ars: toARS(m.monto, m.moneda, tc), usd: toUSD(m.monto, m.moneda, tc), cat: m.categoriaId, m });
     else if (m.tipo === 'gasto') {
@@ -711,9 +759,32 @@ function impactos(list) {
   }
   return out;
 }
+// Resumen de tarjeta: se marca como pagado con "Pagué". Los meses anteriores se dan por pagados.
+const tcPago = (cardId, ym) => S.meses[ym]?.pagos?.['tc_' + cardId] || null;
+const tcPagado = (cardId, ym) => ym < curYM() || !!tcPago(cardId, ym);
+function resumenesMes(ym, imps) {
+  const by = {};
+  for (const x of imps) if (x.ym === ym && x.cuota) { const k = x.m.cuentaId; (by[k] = by[k] || { c: S.cuentas[k], id: k, total: 0, items: [] }); by[k].total += x.ars; by[k].items.push(x); }
+  return Object.values(by).filter(x => x.c).map(x => ({ ...x, pago: tcPago(x.id, ym), pagado: tcPagado(x.id, ym) }));
+}
+// Lo que fuiste guardando. También cuenta lo que sumaste a las metas antes de este cambio.
+function ahorrosList() {
+  const out = [];
+  for (const [doc, d] of Object.entries(S.meses)) {
+    const it = d && d.ahorros; if (!it) continue;
+    for (const id in it) { const a = it[id]; if (a && a.fecha && +a.monto > 0) out.push({ ...a, id, doc, ars: +a.monto }); }
+  }
+  for (const [oid, o] of Object.entries(S.objetivos)) for (const [aid, a] of Object.entries(o.aportes || {})) {
+    if (a && a.fecha && +a.monto > 0) out.push({ id: aid, legacy: true, metaId: oid, fecha: a.fecha, monto: +a.monto, mon: o.moneda || 'ARS', tc: a.tc || S.config.tc, ars: toARS(+a.monto, o.moneda || 'ARS', a.tc || S.config.tc) });
+  }
+  out.sort((a, b) => a.fecha < b.fecha ? 1 : a.fecha > b.fecha ? -1 : (b.creado || 0) - (a.creado || 0));
+  return out;
+}
+const ahorroMes = ym => ahorrosList().filter(a => ymOf(a.fecha) === ym).reduce((t, a) => t + a.ars, 0);
 function resumenMes(ym, imps) {
   const r = { ing: 0, gas: 0, ingU: 0, gasU: 0, cuotas: 0, porCat: {} };
   for (const x of imps) if (x.ym === ym) {
+    if (x.cuota && !tcPagado(x.m.cuentaId, ym)) continue; // el resumen todavía no se pagó: va a "Falta pagar"
     if (x.tipo === 'ingreso') { r.ing += x.ars; r.ingU += x.usd; }
     else { r.gas += x.ars; r.gasU += x.usd; if (x.cuota) r.cuotas += x.ars; const k = x.cat || '_'; r.porCat[k] = (r.porCat[k] || 0) + x.ars; }
   }
@@ -722,9 +793,10 @@ function resumenMes(ym, imps) {
 }
 function saldos(list) {
   const cur = curYM(), r = {};
-  for (const [id, c] of Object.entries(S.cuentas)) r[id] = { saldo: +c.saldoInicial || 0, deuda: 0, prox: 0 };
+  for (const [id, c] of Object.entries(S.cuentas)) r[id] = { saldo: +c.saldoInicial || 0, deuda: 0, prox: 0, resumen: 0 };
   const vale = (cid, fecha) => { const c = S.cuentas[cid]; return !!c && (!c.desde || fecha >= c.desde); };
   for (const m of list) {
+    if (m.pendiente) continue;
     const tc = tcOf(m), c = S.cuentas[m.cuentaId];
     if (m.tipo === 'ingreso') { if (vale(m.cuentaId, m.fecha)) r[m.cuentaId].saldo += conv(m.monto, m.moneda, c.moneda, tc); }
     else if (m.tipo === 'gasto') {
@@ -733,7 +805,11 @@ function saldos(list) {
         for (const q of cuotasDe(m)) {
           const ars = toARS(q.monto, m.moneda, tc);
           if (q.ym > cur) { r[m.cuentaId].deuda += ars; if (q.ym === addM(cur, 1)) r[m.cuentaId].prox += ars; }
-          else if (payer && (!startYM || q.ym > startYM)) r[c.pagaCon].saldo -= conv(q.monto, m.moneda, payer.moneda, tc);
+          else if (q.ym === cur && !tcPagado(m.cuentaId, cur)) { r[m.cuentaId].deuda += ars; r[m.cuentaId].resumen += ars; }
+          else if (payer) {
+            const pago = tcPago(m.cuentaId, q.ym);
+            if (pago ? (!payer.desde || pago.fecha >= payer.desde) : (!startYM || q.ym > startYM)) r[c.pagaCon].saldo -= conv(q.monto, m.moneda, payer.moneda, tc);
+          }
         }
       } else if (vale(m.cuentaId, m.fecha)) r[m.cuentaId].saldo -= conv(m.monto, m.moneda, c.moneda, tc);
     } else if (m.tipo === 'transferencia') {
@@ -756,7 +832,7 @@ function patrimonio(sal) {
   return { pesos, dolares, deuda, disp, neto: disp - deuda };
 }
 function fijosMes(ym, list) {
-  const hechos = new Set(list.filter(m => m.fijoId && ymOf(m.fecha) === ym).map(m => m.fijoId));
+  const hechos = new Set(list.filter(m => m.fijoId && ymOf(m.vence || m.fecha) === ym).map(m => m.fijoId));
   return Object.entries(S.fijos).filter(([, f]) => f.activo !== false)
     .map(([id, f]) => ({ id, f, hecho: hechos.has(id) }))
     .sort((a, b) => (a.f.dia || 1) - (b.f.dia || 1));
@@ -773,7 +849,7 @@ function proyeccion(list, imps, sal) {
   const ocioCats = ocioSet(), vOcio = (+cfg.ocioMensual || 0) > 0 && ocioCats.size ? +cfg.ocioMensual : 0;
   let vIng = 0, vCash = 0, vCard = 0;
   for (const m of list) {
-    if (m.fijoId || !base.includes(ymOf(m.fecha))) continue;
+    if (m.fijoId || m.pendiente || !base.includes(ymOf(m.fecha))) continue;
     const a = toARS(m.monto, m.moneda, tcOf(m));
     if (m.tipo === 'ingreso') vIng += a;
     else if (m.tipo === 'gasto') {
@@ -784,7 +860,8 @@ function proyeccion(list, imps, sal) {
   vIng /= base.length; vCash /= base.length; vCard /= base.length;
   let fIng = 0, fGas = 0;
   for (const f of Object.values(S.fijos)) { if (f.activo === false) continue; const a = toARS(+f.monto || 0, f.moneda, tc); if (f.tipo === 'ingreso') fIng += a; else fGas += a; }
-  const comp = {};
+  const comp = {}, pendFut = {};
+  for (const m of list) if (m.tipo === 'gasto' && m.pendiente && ymOf(m.fecha) > cur) pendFut[ymOf(m.fecha)] = (pendFut[ymOf(m.fecha)] || 0) + toARS(m.monto, m.moneda, tcOf(m));
   for (const x of imps) if (x.cuota && !x.m.fijoId && x.ym > cur) comp[x.ym] = (comp[x.ym] || 0) + x.ars;
   // Este mes: exactamente la misma cuenta que la pestaña Mes ("Te quedaría a fin de mes").
   const R = cuentaDelMes(cur, list, imps, resumenMes(cur, imps));
@@ -792,14 +869,14 @@ function proyeccion(list, imps, sal) {
   for (const m of list) if (m.tipo === 'gasto' && m.fijoId && !isCard(m.cuentaId) && ymOf(m.fecha) === cur) fijoCash += toARS(m.monto, m.moneda, tcOf(m));
   const pat = patrimonio(sal);
   const acc0 = pat.disp + R.faltaCobrar - R.faltaPagar - R.ocio;
-  const mesActual = { ym: cur, i: 0, ing: R.entra, fijos: fijoCash + R.faltaPagar, cuotas: R.tarjeta, vari: R.gas - R.tarjeta - fijoCash + R.ocio, ahorro: R.queda, acc: acc0, tcI: tc, defl: 1, faltaCobrar: R.faltaCobrar, faltaPagar: R.faltaPagar, ocio: R.ocio };
+  const mesActual = { ym: cur, i: 0, ing: R.entra, fijos: fijoCash + R.faltaFijos, cuotas: R.tarjeta, vari: R.gas - R.tarjetaPagada - fijoCash + R.faltaGastos + R.ocio, ahorro: R.sobra, acc: acc0, tcI: tc, defl: 1, faltaCobrar: R.faltaCobrar, faltaPagar: R.faltaPagar, ocio: R.ocio };
   let acc = acc0; const rows = [];
   for (let i = 1; i <= H; i++) {
     const ym = addM(cur, i);
     const ing = (fIng + vIng) * Math.pow(1 + aj, i);
     const fijos = fGas * Math.pow(1 + inf, i);
     const cuotas = comp[ym] || 0;
-    const vari = (vCash + (i >= 2 ? vCard : 0) + vOcio) * Math.pow(1 + inf, i);
+    const vari = (vCash + (i >= 2 ? vCard : 0) + vOcio) * Math.pow(1 + inf, i) + (pendFut[ym] || 0);
     const ahorro = ing - fijos - cuotas - vari;
     acc += ahorro;
     rows.push({ ym, i, ing, fijos, cuotas, vari, ahorro, acc, tcI: tc * Math.pow(1 + sd, i), defl: Math.pow(1 + inf, i) });
@@ -807,9 +884,10 @@ function proyeccion(list, imps, sal) {
   const prom = rows.length ? rows.reduce((s, r) => s + r.ahorro, 0) / rows.length : 0;
   return { rows, acc0, mesActual, disp: pat.disp, base, pocos, vIng, vCash, vCard, vOcio, fIng, fGas, prom, tc };
 }
-function objInfo(o) {
-  const aportes = Object.entries(o.aportes || {}).filter(([, a]) => a && a.monto > 0).map(([id, a]) => ({ id, ...a })).sort((a, b) => a.fecha < b.fecha ? 1 : -1);
-  const ahorrado = aportes.reduce((s, a) => s + a.monto, 0);
+function objInfo(o, id) {
+  const mon = o.moneda || 'ARS';
+  const aportes = id ? ahorrosList().filter(a => a.metaId === id).map(a => ({ ...a, enMon: a.legacy ? a.monto : (mon === 'USD' ? a.ars / (a.tc || S.config.tc) : a.ars) })) : [];
+  const ahorrado = aportes.reduce((t, a) => t + a.enMon, 0);
   const meta = +o.meta || 0, falta = Math.max(0, meta - ahorrado);
   const restantes = o.fecha ? diffM(curYM(), ymOf(o.fecha)) : 12;
   const vencida = o.fecha && o.fecha < todayStr() && falta > 0;
@@ -831,7 +909,7 @@ function ocioMes(ym, list) {
   const desde = S.config.ocioDesde || null;
   const inicio = desde && ymOf(desde) === ym ? semanaIdx(+desde.slice(8, 10)) : desde && ymOf(desde) > ym ? 4 : 0;
   const W = [[1, 7], [8, 14], [15, 21], [22, fin]].map(([d, h], i) => ({ k: i + 1, desde: d, hasta: h, gastado: 0, items: [], fuera: i < inicio }));
-  for (const m of list) if (m.tipo === 'gasto' && cats.has(m.categoriaId) && ymOf(m.fecha) === ym) {
+  for (const m of list) if (m.tipo === 'gasto' && !m.pendiente && cats.has(m.categoriaId) && ymOf(m.fecha) === ym) {
     const w = W[semanaIdx(+m.fecha.slice(8, 10))];
     w.gastado += toARS(m.monto, m.moneda, tcOf(m)); w.items.push(m);
   }
@@ -1076,77 +1154,126 @@ function viewMes({ list, imps, sal }) {
   const r = resumenMes(S.ym, imps);
   const R = cuentaDelMes(S.ym, list, imps, r);
   h += resumenHTML(R);
+  h += pagosHTML(R, list);
   h += ocioMini(list);
-  h += pendientesHTML(R);
   h += categoriasHTML(r);
   h += ultimosHTML(list);
   h += cuentasHTML(sal);
-  h += tarjetasHTML(S.ym, imps, list);
   h += primerosPasos(list);
   return h;
 }
 /* La cuenta simple del mes: lo que entró, lo que salió, lo que falta y con cuánto terminás */
 function cuentaDelMes(ym, list, imps, r) {
   const cur = curYM(), pasado = ym < cur, actual = ym === cur;
-  let tarjeta = 0, comprasTarjeta = 0;
-  for (const x of imps) if (x.ym === ym && x.tipo === 'gasto' && x.cuota) tarjeta += x.ars;
-  for (const m of list) if (m.tipo === 'gasto' && isCard(m.cuentaId) && ymOf(m.fecha) === ym) comprasTarjeta += toARS(m.monto, m.moneda, tcOf(m));
-  let faltaCobrar = 0, faltaPagar = 0;
+  let comprasTarjeta = 0;
+  for (const m of list) if (m.tipo === 'gasto' && !m.pendiente && isCard(m.cuentaId) && ymOf(m.fecha) === ym) comprasTarjeta += toARS(m.monto, m.moneda, tcOf(m));
+  const res = resumenesMes(ym, imps);
+  const tarjeta = res.reduce((t, x) => t + x.total, 0), tarjetaPend = res.filter(x => !x.pagado).reduce((t, x) => t + x.total, 0);
+  let faltaCobrar = 0, faltaFijos = 0, faltaGastos = 0;
   const pend = pasado ? [] : fijosMes(ym, list).filter(p => !p.hecho);
-  for (const p of pend) { const a = toARS(+p.f.monto || 0, p.f.moneda, S.config.tc); if (p.f.tipo === 'ingreso') faltaCobrar += a; else faltaPagar += a; }
+  for (const p of pend) { const v = toARS(+p.f.monto || 0, p.f.moneda, S.config.tc); if (p.f.tipo === 'ingreso') faltaCobrar += v; else if (!isCard(p.f.cuentaId)) faltaFijos += v; }
+  // Gastos cargados "a pagar": los de este mes y los vencidos de meses anteriores.
+  const aPagar = pasado ? [] : list.filter(m => m.tipo === 'gasto' && m.pendiente && (actual ? ymOf(m.fecha) <= ym : ymOf(m.fecha) === ym)).sort((x, y) => x.fecha < y.fecha ? -1 : 1);
+  for (const m of aPagar) faltaGastos += toARS(m.monto, m.moneda, tcOf(m));
+  const faltaPagar = faltaFijos + faltaGastos + tarjetaPend;
   const oc = pasado ? { activo: false, resta: 0 } : ocioPorGastar(ym, list);
-  const ocio = oc.activo ? oc.resta : 0;
-  const entra = r.ing + faltaCobrar, queda = entra - r.gas - faltaPagar - ocio;
+  const ocCats = oc.activo ? ocioSet() : null;
+  const pendOcio = oc.activo ? aPagar.filter(m => ocCats.has(m.categoriaId)).reduce((t, m) => t + toARS(m.monto, m.moneda, tcOf(m)), 0) : 0;
+  const ocio = oc.activo ? Math.max(0, oc.resta - pendOcio) : 0;
+  const entra = r.ing + faltaCobrar, sobra = entra - r.gas - faltaPagar - ocio;
+  const ahorrado = ahorroMes(ym);
   const day = +todayStr().slice(8, 10), dias = actual ? daysIn(ym) - day + 1 : 0;
-  return { ym, pasado, actual, ing: r.ing, gas: r.gas, tarjeta, comprasTarjeta, faltaCobrar, faltaPagar, pend, ocio, ocioActivo: oc.activo, ocioMensual: oc.mensual || 0, ocioUsado: oc.usado || 0, entra, queda, dias, porDia: actual && queda > 0 ? queda / dias : 0, vacio: !r.ing && !r.gas && !pend.length };
+  return { ym, pasado, actual, ing: r.ing, gas: r.gas, tarjeta, tarjetaPagada: r.cuotas, tarjetaPend, res, comprasTarjeta, faltaCobrar, faltaFijos, faltaGastos, faltaPagar, pend, aPagar,
+    ocio, ocioActivo: oc.activo, ocioMensual: oc.mensual || 0, ocioUsado: oc.usado || 0, entra, sobra, queda: sobra, ahorrado, libre: sobra - ahorrado, dias,
+    porDia: actual && sobra > 0 ? sobra / dias : 0, vacio: !r.ing && !r.gas && !pend.length && !aPagar.length && !tarjetaPend };
 }
 function resumenHTML(R) {
   const mesTxt = MES[+R.ym.slice(5) - 1], Mes = cap(mesTxt);
   if (R.vacio) return `<section class="sheet hero mes-hero"><div class="eyebrow">${Mes}</div><div class="hero-lbl">Todavía no hay movimientos en ${mesTxt}.</div>
     <div style="margin-top:14px"><button class="btn btn-primary" data-act="add">Cargar el primero</button></div></section>`;
-  const neg = R.queda < 0;
-  const lbl = R.pasado ? (neg ? 'Gastaste más de lo que entró' : 'Te quedó') : (neg ? 'Te faltarían' : 'Te quedaría a fin de mes');
+  const neg = R.sobra < 0;
+  const lbl = R.pasado ? (neg ? 'Gastaste más de lo que entró' : 'Te sobró') : (neg ? 'Te faltarían' : 'Te sobraría a fin de mes');
   const eyebrow = R.pasado ? `${Mes} · mes cerrado` : R.actual ? `${Mes} · ${R.dias === 1 ? 'último día' : `quedan ${R.dias} días`}` : `${Mes} · lo que viene`;
   const base = Math.max(R.entra, R.gas + R.faltaPagar + R.ocio) || 1;
   const w = v => Math.max(0, v / base * 100).toFixed(2) + '%';
   const fg = v => Math.max(0, v / base).toFixed(4);
   const marca = neg && R.entra > 0 ? `<i class="f-mark" style="left:${w(R.entra)}" title="Lo que entró"></i>` : '';
   const finMes = `${diaSemana(`${R.ym}-${pad(daysIn(R.ym))}`)} ${daysIn(R.ym)}`;
-  const sub = R.actual && !neg ? (R.ocioActivo ? `Ya separé tu ocio y lo que falta pagar: <b>esto es lo que te sobraría</b> para ahorrar.` : `Podés gastar <b>${money(R.porDia)} por día</b> hasta el ${finMes}.`)
-    : neg ? `Lo que sale supera a lo que entra por ${money(-R.queda)}.` : '';
-  const aria = `Entró ${money(R.entra)}, gastaste ${money(R.gas)}${R.faltaPagar ? `, falta pagar ${money(R.faltaPagar)}` : ''}${R.ocioActivo ? `, ocio por gastar ${money(R.ocio)}` : ''}, ${neg ? 'faltan' : 'quedan'} ${money(Math.abs(R.queda))}`;
+  let sub = '';
+  if (neg) sub = `Lo que sale supera a lo que entra por ${money(-R.sobra)}.`;
+  else if (R.ahorrado > 0) sub = `Ya guardaste <b>${money(R.ahorrado)}</b> en ahorro${R.libre > 0 ? `. Te quedan ${money(R.libre)} sin ahorrar` : ''}.`;
+  else if (R.actual) sub = R.faltaPagar || R.ocioActivo ? `Ya conté lo que falta pagar${R.ocioActivo ? ' y tu ocio' : ''}. Es lo que podés ahorrar.` : `Podés gastar <b>${money(R.porDia)} por día</b> hasta el ${finMes}.`;
+  const aria = `Entró ${money(R.entra)}, gastaste ${money(R.gas)}${R.faltaPagar ? `, falta pagar ${money(R.faltaPagar)}` : ''}${R.ocioActivo ? `, ocio por gastar ${money(R.ocio)}` : ''}, ${neg ? 'faltan' : 'sobran'} ${money(Math.abs(R.sobra))}`;
   return `<section class="sheet hero mes-hero" aria-label="Cuenta del mes">
     <div class="eyebrow">${eyebrow}</div>
     <div class="hero-lbl">${lbl}</div>
-    <div class="big ${neg ? 'neg' : ''}">${money(Math.abs(R.queda))}</div>
+    <div class="big ${neg ? 'neg' : ''}">${money(Math.abs(R.sobra))}</div>
     ${sub ? `<div class="sub">${sub}</div>` : ''}
     <div class="flow" role="img" aria-label="${aria}">
-      <span class="f-out" style="flex-grow:${fg(R.gas)}"></span>${R.faltaPagar ? `<span class="f-due" style="flex-grow:${fg(R.faltaPagar)}"></span>` : ''}${R.ocio > 0 ? `<span class="f-ocio" style="flex-grow:${fg(R.ocio)}"></span>` : ''}${!neg ? `<span class="f-left" style="flex-grow:${fg(R.queda)}"></span>` : ''}${marca}
+      <span class="f-out" style="flex-grow:${fg(R.gas)}"></span>${R.faltaPagar ? `<span class="f-due" style="flex-grow:${fg(R.faltaPagar)}"></span>` : ''}${R.ocio > 0 ? `<span class="f-ocio" style="flex-grow:${fg(R.ocio)}"></span>` : ''}${!neg ? `<span class="f-left" style="flex-grow:${fg(R.sobra)}"></span>` : ''}${marca}
     </div>
     <dl class="recibo">
       <div class="rl"><dt><i class="sw in"></i>Entró</dt><dd>${money(R.ing)}</dd></div>
       ${R.faltaCobrar ? `<div class="rl sub"><dt>Falta cobrar</dt><dd>+${money(R.faltaCobrar)}</dd></div>` : ''}
       <div class="rl"><dt><i class="sw out"></i>Gastaste</dt><dd>−${money(R.gas)}</dd></div>
-      ${R.tarjeta ? `<div class="rl sub"><dt>Incluye el resumen de la tarjeta</dt><dd>${money(R.tarjeta)}</dd></div>` : ''}
+      ${R.tarjetaPagada ? `<div class="rl sub"><dt>Incluye el resumen de la tarjeta</dt><dd>${money(R.tarjetaPagada)}</dd></div>` : ''}
       ${R.faltaPagar ? `<div class="rl"><dt><i class="sw due"></i>Falta pagar</dt><dd>−${money(R.faltaPagar)}</dd></div>` : ''}
       ${R.ocioActivo ? `<div class="rl"><dt><i class="sw ocio"></i>Ocio que te queda</dt><dd>−${money(R.ocio)}</dd></div>
       <div class="rl sub"><dt>${R.ocioUsado > 0 ? `Ya usaste ${money(R.ocioUsado)} de ${money(R.ocioMensual)}` : `Tu presupuesto de ocio: ${money(R.ocioMensual)}`}</dt><dd></dd></div>` : ''}
-      <div class="rl total"><dt><i class="sw ${neg ? 'neg' : 'left'}"></i>${R.pasado ? (neg ? 'Te faltó' : 'Te quedó') : (neg ? 'Te faltarían' : 'Te quedaría')}</dt><dd class="${neg ? 'neg' : ''}">${neg ? '−' : ''}${money(Math.abs(R.queda))}</dd></div>
+      <div class="rl total"><dt><i class="sw ${neg ? 'neg' : 'left'}"></i>${R.pasado ? (neg ? 'Te faltó' : 'Te sobró') : (neg ? 'Te faltarían' : 'Te sobraría')}</dt><dd class="${neg ? 'neg' : ''}">${neg ? '−' : ''}${money(Math.abs(R.sobra))}</dd></div>
+      ${R.ahorrado > 0 ? `<div class="rl sub"><dt>${R.ahorrado <= R.sobra ? 'De eso, guardaste en ahorro' : 'Guardaste en ahorro'}</dt><dd>${money(R.ahorrado)}</dd></div>` : ''}
     </dl>
-    ${R.comprasTarjeta && !R.pasado ? `<p class="note">Además compraste ${money(R.comprasTarjeta)} con tarjeta en ${mesTxt}. Eso no está en la cuenta: lo pagás desde ${mesNombre(addM(R.ym, 1))}.</p>` : ''}
+    ${R.comprasTarjeta && !R.pasado ? `<p class="note">Además compraste ${money(R.comprasTarjeta)} con tarjeta en ${mesTxt}: lo pagás en el resumen de ${mesNombre(addM(R.ym, 1))}.</p>` : ''}
+    ${R.actual && R.libre > 0 ? `<div class="hero-cta"><button class="btn btn-ghost" data-act="ahorrar">Guardar en ahorro</button></div>` : ''}
   </section>`;
 }
-function pendientesHTML(R) {
-  if (!R.pend.length) return '';
-  const mesTxt = MES[+R.ym.slice(5) - 1], mc = MES_C[+R.ym.slice(5) - 1];
-  const row = x => `<div class="row"><span class="day">${pad(Math.min(x.f.dia || 1, daysIn(R.ym)))}<small>${mc}</small></span>
-      <span class="grow"><b>${esc(x.f.nombre)}</b><small>${x.f.tipo === 'ingreso' ? 'Por cobrar' : 'Por pagar'} · ${esc(cuentaName(x.f.cuentaId))}</small></span>
-      <span class="num ${x.f.tipo === 'ingreso' ? 'pos' : ''}">${x.f.tipo === 'ingreso' ? '+' : ''}${money(+x.f.monto, x.f.moneda)}</span>
-      <button class="btn btn-sm btn-ghost" data-act="reg-fijo" data-id="${x.id}">${x.f.tipo === 'ingreso' ? 'Cobré' : 'Pagué'}</button></div>`;
-  const top = R.pend.slice(0, 4), resto = R.pend.slice(4);
-  return `<section class="block"><div class="block-h"><h2>Pendientes de ${mesTxt}</h2><span class="muted">${R.pend.length} ${R.pend.length === 1 ? 'fijo' : 'fijos'}</span></div>
-    <div class="sheet ledger">${top.map(row).join('')}${resto.length ? `<details class="more"><summary>Ver ${resto.length} más</summary><div class="ledger">${resto.map(row).join('')}</div></details>` : ''}</div>
-    <p class="hint" style="margin:8px 2px 0">Cuando lo pagues o lo cobres, tocá el botón y se anota solo.</p></section>`;
+/* Pagos del mes: fijos, gastos cargados "a pagar" y resumen de tarjeta, con su estado */
+function pagosMes(R, list) {
+  const ym = R.ym, out = [];
+  for (const p of fijosMes(ym, list)) {
+    const mv = p.hecho ? list.find(m => m.fijoId === p.id && ymOf(m.vence || m.fecha) === ym) : null;
+    if (R.pasado && !mv) continue;
+    if (mv && mv.pendiente) continue; // ya aparece como "a pagar"
+    const ing = p.f.tipo === 'ingreso', conTarjeta = !mv && !ing && isCard(p.f.cuentaId);
+    out.push({ ing, nombre: p.f.nombre, cuenta: cuentaName(mv ? mv.cuentaId : p.f.cuentaId), fecha: `${ym}-${pad(Math.min(p.f.dia || 1, daysIn(ym)))}`,
+      monto: mv ? toARS(mv.monto, mv.moneda, tcOf(mv)) : toARS(+p.f.monto || 0, p.f.moneda, S.config.tc), hecho: !!mv, pagadoEl: mv?.fecha, conTarjeta,
+      act: mv ? `data-act="edit-mov" data-id="${mv.id}" data-doc="${mv.doc}"` : `data-act="reg-fijo" data-id="${p.id}"` });
+  }
+  for (const m of R.aPagar) out.push({ nombre: m.nota || catName(m.categoriaId), cuenta: cuentaName(m.cuentaId), fecha: m.fecha, monto: toARS(m.monto, m.moneda, tcOf(m)), hecho: false,
+    act: `data-act="pagar-mov" data-id="${m.id}" data-doc="${m.doc}"`, edit: `data-act="edit-mov" data-id="${m.id}" data-doc="${m.doc}"` });
+  for (const m of list) if (m.tipo === 'gasto' && !m.pendiente && m.vence && !m.fijoId && ymOf(m.fecha) === ym)
+    out.push({ nombre: m.nota || catName(m.categoriaId), cuenta: cuentaName(m.cuentaId), fecha: m.vence, monto: toARS(m.monto, m.moneda, tcOf(m)), hecho: true, pagadoEl: m.fecha, act: `data-act="edit-mov" data-id="${m.id}" data-doc="${m.doc}"` });
+  for (const x of R.res) out.push({ tc: true, nombre: `Resumen ${x.c.nombre}`, cuenta: x.c.pagaCon ? cuentaName(x.c.pagaCon) : '', n: x.items.length, monto: x.total, hecho: x.pagado, pagadoEl: x.pago?.fecha,
+    act: R.actual ? `data-act="pagar-tc" data-id="${x.id}"` : '' });
+  return out;
+}
+function pagosHTML(R, list) {
+  const items = pagosMes(R, list);
+  const mesTxt = MES[+R.ym.slice(5) - 1], hoy = todayStr();
+  if (!items.length) return R.pasado ? '' : `<section class="block"><div class="block-h"><h2>Pagos de ${mesTxt}</h2></div>
+    <div class="sheet empty"><p>Acá vas a ver lo que tenés que pagar: tus fijos, el resumen de la tarjeta y los gastos que cargues como "lo tengo que pagar".</p></div></section>`;
+  const pend = items.filter(x => !x.hecho).sort((a, b) => (a.tc ? '9' : a.fecha) < (b.tc ? '9' : b.fecha) ? -1 : 1);
+  const hechos = items.filter(x => x.hecho).sort((a, b) => String(b.pagadoEl || '') < String(a.pagadoEl || '') ? -1 : 1);
+  const pagado = hechos.filter(x => !x.ing).reduce((t, x) => t + x.monto, 0), falta = pend.filter(x => !x.ing && !x.conTarjeta).reduce((t, x) => t + x.monto, 0);
+  const badge = x => x.tc ? `<span class="day ic">${IC.card}</span>` : `<span class="day ${!x.hecho && x.fecha < hoy ? 'late' : ''}">${x.fecha.slice(8, 10)}<small>${MES_C[+x.fecha.slice(5, 7) - 1]}</small></span>`;
+  const estado = x => x.tc ? `${x.n} ${x.n === 1 ? 'consumo' : 'consumos'}${x.cuenta ? ' · se paga con ' + esc(x.cuenta) : ''}`
+    : x.conTarjeta ? `Con ${esc(x.cuenta)} · va al resumen que viene`
+    : `${x.ing ? 'Por cobrar' : x.fecha < hoy ? '<span class="st-over">Vencido</span>' : 'Vence el ' + +x.fecha.slice(8, 10)} · ${esc(x.cuenta)}`;
+  const rowP = x => `<div class="row pg">${badge(x)}<${x.act ? 'button' : 'span'} class="grow" ${x.edit || x.act}><b>${esc(x.nombre)}</b><small>${estado(x)}</small></${x.act ? 'button' : 'span'}>
+      <span class="num ${x.ing ? 'pos' : ''}">${x.ing ? '+' : ''}${money(x.monto)}</span>
+      ${x.act ? `<button class="btn btn-sm btn-ghost" ${x.act}>${x.ing ? 'Cobré' : x.conTarjeta ? 'Anotar' : 'Pagué'}</button>` : ''}</div>`;
+  const rowH = x => `<${x.act ? 'button' : 'div'} class="row pg done" ${x.act}><span class="day ok-ic">${IC.ok}</span><span class="grow"><b>${esc(x.nombre)}</b><small>${x.ing ? 'Cobrado' : 'Pagado'}${x.pagadoEl ? ' el ' + fechaCorta(x.pagadoEl) : ''}${x.cuenta ? ' · ' + esc(x.cuenta) : ''}</small></span><span class="num">${x.ing ? '+' : ''}${money(x.monto)}</span></${x.act ? 'button' : 'div'}>`;
+  const top = pend.slice(0, 6), resto = pend.slice(6);
+  const p = pagado + falta > 0 ? pagado / (pagado + falta) : 1;
+  return `<section class="block"><div class="block-h"><h2>Pagos de ${mesTxt}</h2><span class="muted">${hechos.length} de ${items.length} listos</span></div>
+    <div class="sheet ledger pagos">
+      <div class="pg-head"><div class="bar" aria-hidden="true"><span class="ok" style="width:${(p * 100).toFixed(1)}%"></span></div>
+        <div class="pg-txt"><span>Pagaste <b>${money(pagado)}</b></span><span>${falta > 0 ? `Falta <b>${money(falta)}</b>` : 'Todo pagado'}</span></div></div>
+      ${top.map(rowP).join('')}
+      ${resto.length ? `<details class="more"><summary>Ver ${resto.length} más por pagar</summary><div class="ledger">${resto.map(rowP).join('')}</div></details>` : ''}
+      ${hechos.length ? `<details class="more"${pend.length ? '' : ' open'}><summary>${hechos.length === 1 ? 'Ver 1 pagado' : `Ver ${hechos.length} pagados`}</summary><div class="ledger">${hechos.map(rowH).join('')}</div></details>` : ''}
+    </div>
+    ${!R.pasado && !R.aPagar.length ? '<p class="hint" style="margin:8px 2px 0">¿Tenés que pagar algo más este mes? Cargalo con + y elegí "Lo tengo que pagar".</p>' : ''}</section>`;
 }
 function ultimosHTML(list) {
   const delMes = list.filter(m => ymOf(m.fecha) === S.ym);
@@ -1186,14 +1313,14 @@ function cuentasHTML(sal) {
   const pat = patrimonio(sal);
   const rows = cuentasList().map(c => {
     const s = sal[c.id] || { saldo: 0, deuda: 0, prox: 0 };
-    if (c.tipo === 'tarjeta') return `<button class="row" data-act="edit-cuenta" data-id="${c.id}"><span class="grow"><b>${esc(c.nombre)}</b><small>${s.prox > 0 ? `Resumen de ${MES_C[+addM(curYM(), 1).slice(5) - 1]}: ${money(s.prox)}` : 'Sin cuotas pendientes'}</small></span><span class="num ${s.deuda > 0 ? 'neg' : ''}">${s.deuda > 0 ? money(-s.deuda) : money(0)}</span></button>`;
+    if (c.tipo === 'tarjeta') return `<button class="row" data-act="edit-cuenta" data-id="${c.id}"><span class="grow"><b>${esc(c.nombre)}</b><small>${s.resumen > 0 ? `Resumen de ${MES[+curYM().slice(5) - 1]} sin pagar: ${money(s.resumen)}` : s.prox > 0 ? `Resumen de ${MES[+addM(curYM(), 1).slice(5) - 1]}: ${money(s.prox)}` : 'Sin cuotas pendientes'}</small></span><span class="num ${s.deuda > 0 ? 'neg' : ''}">${s.deuda > 0 ? money(-s.deuda) : money(0)}</span></button>`;
     return `<button class="row" data-act="edit-cuenta" data-id="${c.id}"><span class="grow"><b>${esc(c.nombre)}</b><small>${TIPOS_CUENTA[c.tipo] || ''}${c.moneda === 'USD' ? ` · ≈ ${money(s.saldo * S.config.tc)}` : ''}</small></span><span class="num ${s.saldo < 0 ? 'neg' : ''}">${money(s.saldo, c.moneda)}</span></button>`;
   }).join('');
   const tcTxt = `Dólar a ${money(S.config.tc)}${S.config.tcFecha ? ` (${fechaCorta(S.config.tcFecha)})` : ''}`;
   return `<section class="block"><div class="block-h"><h2>Tus cuentas</h2><button class="link" data-act="config">${tcTxt}</button></div>
     <div class="sheet ledger">
       <div class="row row-total"><span class="grow"><b>Tenés hoy</b><small>${money(pat.pesos)} + ${money(pat.dolares, 'USD')}</small></span><span class="num">${money(pat.disp)}</span></div>
-      ${pat.deuda > 0 ? `<div class="row row-total"><span class="grow"><b>Cuotas por pagar</b><small>De tarjeta, en los próximos meses</small></span><span class="num neg">${money(-pat.deuda)}</span></div>` : ''}
+      ${pat.deuda > 0 ? `<div class="row row-total"><span class="grow"><b>Debés de tarjeta</b><small>Resúmenes y cuotas que todavía no pagaste</small></span><span class="num neg">${money(-pat.deuda)}</span></div>` : ''}
       <details class="more"><summary>Ver cada cuenta</summary><div class="ledger">${rows}</div></details>
     </div></section>`;
 }
@@ -1219,29 +1346,9 @@ function categoriasHTML(r) {
   return `<section class="block"><div class="block-h"><h2>En qué gastaste</h2>${tieneBudget ? '' : '<button class="link" data-act="tab" data-tab="ajustes">Poner presupuestos</button>'}</div>
     <div class="sheet ledger">${top}${resto.length ? `<details class="more"><summary>Ver ${resto.length} ${resto.length === 1 ? 'categoría más' : 'categorías más'}</summary><div class="ledger">${resto.join('')}</div></details>` : ''}</div></section>`;
 }
-function tarjetasHTML(ym, imps, list) {
-  const cards = cuentasList().filter(c => c.tipo === 'tarjeta');
-  if (!cards.length) return '';
-  const mesTxt = MES[+ym.slice(5) - 1];
-  return cards.map(c => {
-    const items = imps.filter(x => x.cuota && x.m.cuentaId === c.id && x.ym === ym);
-    const total = items.reduce((s, x) => s + x.ars, 0);
-    const compras = list.filter(m => m.tipo === 'gasto' && m.cuentaId === c.id && ymOf(m.fecha) === ym);
-    const totalCompras = compras.reduce((s, m) => s + toARS(m.monto, m.moneda, tcOf(m)), 0);
-    if (!items.length && !compras.length) return '';
-    const rows = items.sort((a, b) => b.ars - a.ars).map(x => `<button class="row" data-act="edit-mov" data-id="${x.m.id}" data-doc="${x.m.doc}"><span class="dot" style="background:${catVar(x.cat)}"></span><span class="grow"><b>${esc(x.m.nota || catName(x.cat))}</b><small>${x.cuota.n > 1 ? `Cuota ${x.cuota.k} de ${x.cuota.n}` : 'Un pago'} · comprado el ${fechaCorta(x.m.fecha)}</small></span><span class="num">${money(x.ars)}</span></button>`).join('');
-    return `<section class="block"><div class="block-h"><h2>${esc(c.nombre)}</h2><span class="muted">cierra el día ${c.cierre || 25}</span></div>
-      <div class="sheet ledger">
-        <div class="row row-total"><span class="grow"><b>Resumen de ${mesTxt}</b><small>${items.length} ${items.length === 1 ? 'consumo' : 'consumos'}</small></span><span class="num">${money(total)}</span></div>
-        ${items.length ? `<details class="more"><summary>Ver detalle</summary><div class="ledger">${rows}</div></details>` : ''}
-        ${compras.length ? `<div class="row"><span class="grow"><b>Compras de ${mesTxt}</b><small>Se pagan en los próximos resúmenes</small></span><span class="num">${money(totalCompras)}</span></div>` : ''}
-      </div></section>`;
-  }).join('');
-}
-
 /* ----- Movimientos ----- */
 function filterChipsHTML() {
-  const opts = [['todos', 'Todos'], ['gasto', 'Gastos'], ['ingreso', 'Ingresos'], ['ocio', 'Ocio'], ['transferencia', 'Transferencias'], ['cuotas', 'En cuotas']];
+  const opts = [['todos', 'Todos'], ['gasto', 'Gastos'], ['ingreso', 'Ingresos'], ['apagar', 'A pagar'], ['ocio', 'Ocio'], ['transferencia', 'Transferencias'], ['cuotas', 'En cuotas']];
   return opts.map(([v, l]) => `<button class="fchip" data-act="filter" data-v="${v}" aria-pressed="${S.f.tipo === v}">${l}</button>`).join('');
 }
 function viewMovs(ctx) {
@@ -1253,9 +1360,10 @@ function viewMovs(ctx) {
 function movListHTML({ list }) {
   const q = norm(S.f.q.trim());
   const oc = S.f.tipo === 'ocio' ? ocioSet() : null;
-  const items = list.filter(m => ymOf(m.fecha) === S.ym).filter(m => {
+  const items = list.filter(m => S.f.tipo === 'apagar' ? m.pendiente : ymOf(m.fecha) === S.ym).filter(m => {
     if (S.f.tipo === 'cuotas') { if (!(m.tipo === 'gasto' && isCard(m.cuentaId) && (m.cuotas || 1) > 1)) return false; }
     else if (S.f.tipo === 'ocio') { if (!(m.tipo === 'gasto' && oc.has(m.categoriaId))) return false; }
+    else if (S.f.tipo === 'apagar') { if (!m.pendiente) return false; }
     else if (S.f.tipo !== 'todos' && m.tipo !== S.f.tipo) return false;
     if (!q) return true;
     return norm([m.nota, catName(m.categoriaId), cuentaName(m.cuentaId), cuentaName(m.cuentaDestinoId)].join(' ')).includes(q);
@@ -1265,7 +1373,7 @@ function movListHTML({ list }) {
   for (const m of items) { if (!groups.has(m.fecha)) groups.set(m.fecha, []); groups.get(m.fecha).push(m); }
   let h = '';
   for (const [fecha, ms] of groups) {
-    const neto = ms.reduce((s, m) => s + (m.tipo === 'ingreso' ? 1 : m.tipo === 'gasto' ? -1 : 0) * toARS(m.monto, m.moneda, tcOf(m)), 0);
+    const neto = ms.reduce((s, m) => s + (m.pendiente ? 0 : m.tipo === 'ingreso' ? 1 : m.tipo === 'gasto' ? -1 : 0) * toARS(m.monto, m.moneda, tcOf(m)), 0);
     h += `<div class="day-g"><div class="day-h"><span>${relDay(fecha)}</span>${neto ? `<span class="num">${money(neto, 'ARS', { sign: true })}</span>` : ''}</div><div class="sheet ledger">${ms.map(movRow).join('')}</div></div>`;
   }
   return h;
@@ -1284,90 +1392,71 @@ function movRow(m, conFecha) {
     if (m.tipo === 'ingreso') cls = 'pos';
     if (m.tipo === 'gasto' && isCard(m.cuentaId) && (m.cuotas || 1) > 1) tags += `<span class="tag acc">${m.cuotas} cuotas</span>`;
     if (m.fijoId) tags += `<span class="tag">fijo</span>`;
+    if (m.pendiente) { tags += `<span class="tag warn">a pagar</span>`; cls = 'muted'; sub = `${m.fecha < todayStr() ? 'Vencido' : 'Vence'} el ${fechaCorta(m.fecha)} · ${sub}`; }
   }
   if (m.ejemplo) tags += `<span class="tag">ejemplo</span>`;
-  if (conFecha === true) sub = `${m.fecha === todayStr() ? 'Hoy' : m.fecha === addD(todayStr(), -1) ? 'Ayer' : fechaCorta(m.fecha)} · ${sub}`;
+  if (conFecha === true && !m.pendiente) sub = `${m.fecha === todayStr() ? 'Hoy' : m.fecha === addD(todayStr(), -1) ? 'Ayer' : fechaCorta(m.fecha)} · ${sub}`;
   const dot = m.tipo === 'transferencia' ? 'var(--ink-3)' : catVar(m.categoriaId);
   return `<button class="row" data-act="edit-mov" data-id="${m.id}" data-doc="${m.doc}"><span class="dot" style="background:${dot}"></span><span class="grow"><b>${esc(title)}</b><small>${esc(sub)}</small></span><span class="amt"><span class="num ${cls}">${amt}</span>${tags ? `<span style="display:flex;gap:4px">${tags}</span>` : ''}</span></button>`;
 }
 
-/* ----- Ahorro: metas y proyección ----- */
-/* ---------- Ahorro: una sola pantalla, en palabras simples ---------- */
+/* ---------- Ahorro: lo que te sobra y lo que vas guardando ---------- */
 function viewAhorro(ctx) {
   if (!Object.keys(S.cuentas).length) return nodbBanner() + onboardingHTML();
-  const P = proyeccion(ctx.list, ctx.imps, ctx.sal);
-  S._proj = P;
-  const objs = Object.entries(S.objetivos).map(([id, o]) => ({ id, o, i: objInfo(o) })).sort((a, b) => String(a.o.fecha || '9').localeCompare(String(b.o.fecha || '9')));
-  const activas = objs.filter(x => !x.i.lograda && !x.i.vencida);
-  const necesario = activas.reduce((t, x) => t + toARS(x.i.porMes, x.o.moneda, S.config.tc), 0);
-  return nodbBanner() + ahorroHero(P, objs, activas, necesario) + metasHTML(objs) + futuroHTML(P) + detalleProyHTML(P);
+  const ym = curYM(), R = cuentaDelMes(ym, ctx.list, ctx.imps, resumenMes(ym, ctx.imps));
+  const A = ahorrosList();
+  const P = proyeccion(ctx.list, ctx.imps, ctx.sal); S._proj = P;
+  return nodbBanner() + ahorroHero(R) + tuAhorroHTML(A) + historialHTML(A) + detalleProyHTML(P);
 }
-// Lo que te sobra este mes (igual que en Mes) y cuánto de eso va a tus metas.
-function ahorroHero(P, objs, activas, necesario) {
-  const C = P.mesActual, Mes = cap(MES[+C.ym.slice(5) - 1]), sobra = C.ahorro;
-  let h = `<section class="sheet hero mes-hero" aria-label="Ahorro de este mes">
-    <div class="eyebrow">${Mes} · este mes</div>
-    <div class="hero-lbl">${sobra >= 0 ? 'Te sobrarían para ahorrar' : 'Este mes te faltarían'}</div>
-    <div class="big ${sobra < 0 ? 'neg' : ''}">${money(Math.abs(sobra))}</div>
-    <div class="sub">Es lo mismo que "Te quedaría" en la pestaña Mes.</div>`;
-  if (!activas.length) {
-    h += objs.length ? `<div style="margin-top:12px"><span class="pill ok">${IC.ok}No tenés metas pendientes</span></div>`
-      : `<p class="note">¿Estás juntando para algo? Creá una meta y te digo cuánto separar por mes.</p><div style="margin-top:12px"><button class="btn btn-primary" data-act="new-obj">Crear una meta</button></div>`;
-    return h + '</section>';
-  }
-  const libre = sobra - necesario;
-  if (sobra > 0) {
-    const base = Math.max(sobra, necesario), fg = v => Math.max(0, v / base).toFixed(4);
-    h += `<div class="flow" role="img" aria-label="${libre >= 0 ? `De ${money(sobra)}, ${money(necesario)} van a tus metas y ${money(libre)} quedan libres` : `Te sobran ${money(sobra)} y tus metas necesitan ${money(necesario)}`}">${libre >= 0
-      ? `<span class="f-meta" style="flex-grow:${fg(necesario)}"></span><span class="f-left" style="flex-grow:${fg(libre)}"></span>`
-      : `<span class="f-meta" style="flex-grow:${fg(sobra)}"></span><span class="f-gap" style="flex-grow:${fg(-libre)}"></span>`}</div>`;
+function ahorroHero(R) {
+  const Mes = cap(MES[+R.ym.slice(5) - 1]), neg = R.sobra < 0;
+  let h = `<section class="sheet hero mes-hero" aria-label="Lo que te sobra este mes">
+    <div class="eyebrow">${Mes} · ${R.dias === 1 ? 'último día' : `quedan ${R.dias} días`}</div>
+    <div class="hero-lbl">${neg ? 'Este mes te faltarían' : 'Te sobraría a fin de mes'}</div>
+    <div class="big ${neg ? 'neg' : ''}">${money(Math.abs(R.sobra))}</div>
+    <div class="sub">El mismo número que en la pestaña Mes.</div>`;
+  if (R.sobra > 0) {
+    const ah = Math.min(R.ahorrado, R.sobra), fg = v => Math.max(0, v / R.sobra).toFixed(4);
+    h += `<div class="flow" role="img" aria-label="Guardaste ${money(R.ahorrado)} de ${money(R.sobra)}">${ah > 0 ? `<span class="f-left" style="flex-grow:${fg(ah)}"></span>` : ''}${R.libre > 0 ? `<span class="f-free" style="flex-grow:${fg(R.libre)}"></span>` : ''}</div>`;
   }
   h += `<dl class="recibo">
-      <div class="rl"><dt><i class="sw meta"></i>Separar para tus metas</dt><dd>${money(necesario)}</dd></div>
-      ${libre >= 0 ? `<div class="rl total"><dt><i class="sw left"></i>Te queda libre</dt><dd>${money(libre)}</dd></div>`
-        : `<div class="rl total"><dt><i class="sw neg"></i>Te faltan</dt><dd class="neg">${money(-libre)}</dd></div>`}
+      <div class="rl"><dt><i class="sw left"></i>Ya guardaste</dt><dd>${money(R.ahorrado)}</dd></div>
+      <div class="rl total"><dt><i class="sw free"></i>Sin ahorrar</dt><dd class="${R.libre < 0 ? 'neg' : ''}">${R.libre < 0 ? '−' : ''}${money(Math.abs(R.libre))}</dd></div>
     </dl>
-    <div style="margin-top:12px">${libre >= 0 ? `<span class="pill ok">${IC.ok}Te alcanza para tus metas</span>` : `<span class="pill bad">${IC.alert}Este mes no te alcanza para tus metas</span>`}</div>
+    ${R.libre < 0 ? `<p class="note">Guardaste más de lo que te sobra este mes.</p>` : ''}
+    <div class="hero-cta"><button class="btn btn-primary" data-act="ahorrar">Guardar en ahorro</button></div>
   </section>`;
   return h;
 }
-function metasHTML(objs) {
-  if (!objs.length) return '';
-  let h = `<section class="block"><div class="block-h"><h2>Tus metas</h2><button class="link" data-act="new-obj">Nueva meta</button></div><div class="stack">`;
+function tuAhorroHTML(A) {
+  const total = A.reduce((t, a) => t + a.ars, 0);
+  const objs = Object.entries(S.objetivos).map(([id, o]) => ({ id, o, i: objInfo(o, id) })).sort((a, b) => String(a.o.fecha || '9').localeCompare(String(b.o.fecha || '9')));
+  const general = A.filter(a => !a.metaId || !S.objetivos[a.metaId]).reduce((t, a) => t + a.ars, 0);
+  let h = `<section class="block"><div class="block-h"><h2>Tu ahorro</h2><button class="link" data-act="new-obj">Nueva meta</button></div>
+    <div class="sheet ledger">
+      <div class="row row-total"><span class="grow"><b>Total ahorrado</b><small>Todo lo que fuiste guardando</small></span><span class="num">${money(total)}</span></div>
+      ${general > 0 || !objs.length ? `<div class="row"><span class="grow"><b>Ahorro general</b><small>${objs.length ? 'Sin una meta en particular' : 'Creá una meta si estás juntando para algo'}</small></span><span class="num">${money(general)}</span></div>` : ''}`;
   for (const { id, o, i } of objs) {
     const mon = o.moneda || 'ARS';
     const hasta = o.fecha ? ` hasta ${MES[+o.fecha.slice(5, 7) - 1]} ${o.fecha.slice(0, 4)}` : '';
-    const linea = i.lograda ? `${IC.ok}<span>¡Llegaste a la meta!</span>`
-      : i.vencida ? `<span>Se pasó la fecha y faltan <b>${money(i.falta, mon)}</b>. Editala para ponerle una fecha nueva.</span>`
-      : `<span>Separá <b>${money(i.porMes, mon)} por mes</b>${hasta}${mon === 'USD' ? ` (≈ ${money(i.porMes * S.config.tc)})` : ''}.</span>`;
-    h += `<article class="sheet goal">
-      <div class="goal-h"><h3>${esc(o.nombre)}</h3><button class="link" data-act="edit-obj" data-id="${id}">Editar</button></div>
-      <div class="goal-nums"><span class="num">${money(i.ahorrado, mon)}</span><span class="muted">de ${money(i.meta, mon)}</span><span class="goal-pct">${Math.round(i.pct * 100)}%</span></div>
+    const linea = i.lograda ? `<span class="ok-txt">${IC.ok} ¡Llegaste a la meta!</span>`
+      : i.vencida ? `Se pasó la fecha. Faltan ${money(i.falta, mon)}.`
+      : `Separá ${money(i.porMes, mon)} por mes${mon === 'USD' ? ` (≈ ${money(i.porMes * S.config.tc)})` : ''}${hasta}.`;
+    h += `<div class="mrow">
+      <div class="mrow-top"><button class="mname" data-act="edit-obj" data-id="${id}"><b>${esc(o.nombre)}</b>${o.ejemplo ? ' <span class="tag">ejemplo</span>' : ''}</button><span class="num">${money(i.ahorrado, mon)} <small>de ${money(i.meta, mon)}</small></span></div>
       <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(i.pct * 100)}" aria-label="Avance de ${esc(o.nombre)}"><span class="${i.lograda ? 'ok' : 'acc'}" style="width:${(i.pct * 100).toFixed(1)}%"></span></div>
-      <p class="goal-line ${i.lograda ? 'ok' : i.vencida ? 'bad' : ''}">${linea}</p>
-      <div class="goal-actions"><button class="btn btn-sm btn-ghost" data-act="aportar" data-id="${id}">Sumar ahorro</button>${o.ejemplo ? '<span class="tag" style="align-self:center">ejemplo</span>' : ''}</div>
-    </article>`;
+      <div class="mrow-bot"><small>${linea}</small>${i.lograda ? '' : `<button class="btn btn-sm btn-ghost" data-act="aportar" data-id="${id}">Sumar</button>`}</div>
+    </div>`;
   }
   return h + '</div></section>';
 }
-// Cómo crecería tu plata: un gráfico y tres momentos clave, en pesos.
-function futuroHTML(P) {
-  const rows = P.rows; if (!rows.length) return '';
-  const last = rows[rows.length - 1], r6 = rows[Math.min(5, rows.length - 1)];
-  const cuando = r => `${cap(MES[+r.ym.slice(5) - 1])} ${r.ym.slice(0, 4)}`;
-  const hito = (lbl, sub, v, r) => `<div class="row"><span class="grow"><b>${lbl}</b><small>${sub}</small></span><span class="num ${v < 0 ? 'neg' : ''}">${money(v)}${r ? `<small>≈ ${money(Math.round(r.acc / r.tcI), 'USD')}</small>` : ''}</span></div>`;
-  return `<section class="block"><div class="block-h"><h2>Si seguís así</h2></div>
-    <div class="sheet chart-card">
-      <div class="hero-lbl" style="margin-top:0">Cómo crecería tu plata</div>
-      <div class="sub" style="margin-top:2px">${P.prom >= 0 ? `Ahorrando unos <b>${money(P.prom)} por mes</b>, según cómo venís gastando.` : `Según cómo venís gastando, <b>perderías unos ${money(-P.prom)} por mes</b>.`}</div>
-      <div class="chart" id="chart"></div>
-    </div>
-    <div class="sheet ledger hitos" style="margin-top:10px">
-      ${hito('Hoy', 'Lo que tenés en tus cuentas', P.disp)}
-      ${hito(`A fin de ${MES[+P.mesActual.ym.slice(5) - 1]}`, 'Con fijos y ocio pagados', P.acc0)}
-      ${rows.length >= 6 && r6 !== last ? hito('En 6 meses', cuando(r6), r6.acc, r6) : ''}
-      ${hito(rows.length === 12 ? 'En 1 año' : `En ${rows.length} meses`, cuando(last), last.acc, last)}
-    </div></section>`;
+function historialHTML(A) {
+  if (!A.length) return '';
+  const dest = a => a.metaId && S.objetivos[a.metaId] ? S.objetivos[a.metaId].nombre : 'Ahorro general';
+  const row = a => `<button class="row" data-act="edit-ahorro" data-id="${a.id}"><span class="day">${a.fecha.slice(8, 10)}<small>${MES_C[+a.fecha.slice(5, 7) - 1]}</small></span><span class="grow"><b>${esc(dest(a))}</b><small>${a.fecha.slice(0, 4) !== curYM().slice(0, 4) ? a.fecha.slice(0, 4) + ' · ' : ''}Tocá para cambiarlo o quitarlo</small></span><span class="num pos">+${money(a.ars)}</span></button>`;
+  const top = A.slice(0, 5), resto = A.slice(5);
+  return `<section class="block"><div class="block-h"><h2>Lo que guardaste</h2></div>
+    <div class="sheet ledger">${top.map(row).join('')}${resto.length ? `<details class="more"><summary>Ver ${resto.length} más</summary><div class="ledger">${resto.map(row).join('')}</div></details>` : ''}</div></section>`;
 }
 // El detalle completo queda plegado para quien lo quiera ver.
 function detalleProyHTML(P) {
@@ -1384,7 +1473,18 @@ function detalleProyHTML(P) {
     .concat(P.rows.map(r => { const d = div(r); return `<tr><td>${cap(ymShort(r.ym))}</td><td>${fmtC(r.ing / d)}</td><td>${fmtC(r.fijos / d)}</td><td>${fmtC(r.cuotas / d)}</td><td>${fmtC(r.vari / d)}</td><td class="${r.ahorro < 0 ? 'neg' : ''}">${r.ahorro < 0 ? '−' : ''}${fmtC(Math.abs(r.ahorro / d))}</td><td class="strong ${r.acc < 0 ? 'neg' : ''}">${r.acc < 0 ? '−' : ''}${fmtC(Math.abs(r.acc / d))}</td></tr>`; })).join('');
   const labels = { ARS: 'Pesos', REAL: 'Pesos de hoy', USD: 'Dólares' };
   const expl = { ARS: 'en pesos de cada mes', REAL: 'en pesos de hoy, descontando la inflación', USD: 'en dólares, con la suba del dólar que estimaste' };
-  return `<details class="sheet how detalle" id="proy-det"${S.detOpen ? ' open' : ''}><summary>Ver el detalle mes a mes</summary>
+  const rows = P.rows, lastR = rows[rows.length - 1], r6 = rows[Math.min(5, rows.length - 1)];
+  const cuando = r => `${cap(MES[+r.ym.slice(5) - 1])} ${r.ym.slice(0, 4)}`;
+  const hito = (lbl, sb, v, r) => `<div class="row"><span class="grow"><b>${lbl}</b><small>${sb}</small></span><span class="num ${v < 0 ? 'neg' : ''}">${money(v)}${r ? `<small>≈ ${money(Math.round(r.acc / r.tcI), 'USD')}</small>` : ''}</span></div>`;
+  return `<details class="sheet how detalle" id="proy-det"${S.detOpen ? ' open' : ''}><summary>Si seguís así: tu plata en un año</summary>
+    <p class="note" style="margin-top:4px">Es una estimación con lo que entra y gastás en promedio: ${P.prom >= 0 ? `ahorrarías unos ${money(P.prom)} por mes` : `perderías unos ${money(-P.prom)} por mes`}.</p>
+    <div class="ledger hitos" style="margin-top:8px">
+      ${hito('Hoy', 'En tus cuentas', P.disp)}
+      ${hito(`A fin de ${MES[+P.mesActual.ym.slice(5) - 1]}`, 'Con todo pagado', P.acc0)}
+      ${lastR && rows.length >= 6 && r6 !== lastR ? hito('En 6 meses', cuando(r6), r6.acc, r6) : ''}
+      ${lastR ? hito(rows.length === 12 ? 'En 1 año' : `En ${rows.length} meses`, cuando(lastR), lastR.acc, lastR) : ''}
+    </div>
+    <h3 class="det-h">Mes a mes</h3>
     <div class="seg-view" role="group" aria-label="Moneda del detalle">${['ARS', 'REAL', 'USD'].map(k => `<button data-act="proj" data-v="${k}" aria-pressed="${mode === k}">${labels[k]}</button>`).join('')}</div>
     ${P.pocos ? `<p class="note">Por ahora uso ${P.base.length === 1 && P.base[0] === curYM() ? 'solo este mes' : `${P.base.length} ${P.base.length === 1 ? 'mes' : 'meses'}`} de datos. Mejora a medida que cargás más meses completos.</p>` : ''}
     <div class="tbl-wrap" style="margin-top:12px"><table><thead><tr><th>Mes</th><th>Entra</th><th>Fijos</th><th>Cuotas</th><th>Variables</th><th>Ahorro</th><th>Disponible</th></tr></thead><tbody>${trs}</tbody></table></div>
@@ -1543,6 +1643,7 @@ function fixMov(F) {
   if (F.categoriaId && S.categorias[F.categoriaId]?.tipo !== F.tipo) F.categoriaId = null;
   if (F.tipo !== 'gasto') F.soloOcio = false;
   if (!(F.tipo === 'gasto' && isCard(F.cuentaId))) { F.cuotas = 1; F.moneda = null; }
+  if (F.tipo !== 'gasto' || isCard(F.cuentaId) || F.ocio) F.pendiente = false;
 }
 function catsOrdenadas(tipo) {
   const uso = {};
@@ -1565,10 +1666,16 @@ function openMov(id, doc, opts = {}) {
   fixMov(F);
   openSheet('mov', F);
 }
+function openPagoMov(id, doc) {
+  const m = S.meses[doc]?.items?.[id]; if (!m) return;
+  const F = { ...m, id, doc, montoStr: toInput(m.monto), montoDestinoStr: '', pendiente: false, vence: m.vence || m.fecha, fecha: todayStr(), pagando: true };
+  fixMov(F);
+  openSheet('mov', F);
+}
 function openMovFromFijo(fid) {
   const f = S.fijos[fid]; if (!f) return;
   const ym = S.ym, dia = Math.min(f.dia || 1, daysIn(ym));
-  const F = { tipo: f.tipo, cuentaId: f.cuentaId, categoriaId: f.categoriaId, fecha: `${ym}-${pad(dia)}`, cuotas: 1, moneda: f.moneda, montoStr: toInput(+f.monto), nota: f.nombre, fijoId: fid };
+  const F = { tipo: f.tipo, cuentaId: f.cuentaId, categoriaId: f.categoriaId, fecha: ym === curYM() ? todayStr() : `${ym}-${pad(dia)}`, cuotas: 1, moneda: f.moneda, montoStr: toInput(+f.monto), nota: f.nombre, fijoId: fid };
   fixMov(F);
   if (f.cuentaId && S.cuentas[f.cuentaId]) F.cuentaId = f.cuentaId;
   openSheet('mov', F);
@@ -1584,6 +1691,7 @@ function readMov(form, F) {
   F.montoDestinoStr = fval(form, 'montoDestino') ?? F.montoDestinoStr;
   F.fecha = fval(form, 'fecha') || F.fecha;
   F.nota = fval(form, 'nota') ?? F.nota;
+  const est = radioVal(form, 'estado'); if (est) F.pendiente = est === 'pend';
 }
 SHEETS.mov = {
   render(F) {
@@ -1609,17 +1717,19 @@ SHEETS.mov = {
       b += `<div class="field"><span class="flabel">Hacia</span><div class="chips" role="radiogroup">${dests.map(k => chip('destino', k.id, k.nombre + (k.moneda === 'USD' ? ' (US$)' : ''), k.id === F.cuentaDestinoId)).join('')}</div></div>`;
       if (d && c && d.moneda !== c.moneda) b += `<div class="field"><label for="f-md">Monto que entra</label><div class="amount sm"><span>${d.moneda === 'USD' ? 'US$' : '$'}</span><input id="f-md" name="montoDestino" inputmode="decimal" autocomplete="off" placeholder="0" value="${esc(F.montoDestinoStr || '')}"></div><p class="hint" id="tc-hint"></p></div>`;
     }
-    b += `<div class="row2"><div class="field"><label for="f-fecha">Fecha</label><input type="date" id="f-fecha" name="fecha" value="${esc(F.fecha)}" required></div>
+    if (F.tipo === 'gasto' && !F.ocio && !esCard && !F.pagando) b += `<div class="field"><span class="flabel">¿Ya lo pagaste?</span><div class="seg" role="radiogroup" aria-label="Estado del pago">${seg('estado', [['pagado', 'Sí, ya lo pagué'], ['pend', 'Lo tengo que pagar']], F.pendiente ? 'pend' : 'pagado')}</div>${F.pendiente ? '<p class="hint">Va a quedar en "Pagos del mes" hasta que toques Pagué. No se descuenta de tu cuenta hasta entonces.</p>' : ''}</div>`;
+    b += `<div class="row2"><div class="field"><label for="f-fecha">${F.pendiente ? 'Vence el' : 'Fecha'}</label><input type="date" id="f-fecha" name="fecha" value="${esc(F.fecha)}" required></div>
       <div class="field"><label for="f-nota">Nota</label><input type="text" id="f-nota" name="nota" maxlength="80" placeholder="${F.ocio ? 'Ej.: cine, birra, delivery' : 'Opcional'}" value="${esc(F.nota || '')}"></div></div>
       <p class="err" id="sheet-err" role="alert"></p>`;
     const fijo = F.fijoId && S.fijos[F.fijoId];
-    return { title: F.id ? 'Editar movimiento' : fijo ? `Registrar ${fijo.nombre}` : F.ocio ? 'Gasto de ocio' : 'Nuevo movimiento', body: b, foot: (F.id ? delBtn() : '') + saveBtn(F.id ? 'Guardar cambios' : 'Guardar') };
+    const title = F.pagando ? `Pagar ${F.nota || catName(F.categoriaId)}` : F.id ? 'Editar movimiento' : fijo ? `Registrar ${fijo.nombre}` : F.ocio ? 'Gasto de ocio' : 'Nuevo movimiento';
+    return { title, body: b, foot: (F.id && !F.pagando ? delBtn() : '') + saveBtn(F.pagando ? 'Ya lo pagué' : F.id ? 'Guardar cambios' : 'Guardar') };
   },
   after() { movHints(); },
   change(form, e) {
     readMov(form, SH.data);
     const n = e.target.name;
-    if (['tipo', 'cuenta', 'destino', 'moneda'].includes(n)) {
+    if (['tipo', 'cuenta', 'destino', 'moneda', 'estado'].includes(n)) {
       const v = e.target.value;
       fixMov(SH.data); drawSheet();
       form.querySelector(`input[name="${n}"][value="${CSS.escape(v)}"]`)?.focus({ preventScroll: true });
@@ -1651,12 +1761,15 @@ SHEETS.mov = {
       categoriaId: F.tipo === 'transferencia' ? null : (F.categoriaId || null),
       cuentaDestinoId: destino, montoDestino: montoDestino != null ? round2(montoDestino) : null,
       cuotas: esCard ? (F.cuotas || 1) : 1, nota: String(F.nota || '').trim().slice(0, 80),
-      fijoId: F.fijoId || null, tc: round2(tc), ejemplo: !!F.ejemplo, creado: F.creado || Date.now()
+      fijoId: F.fijoId || null, tc: round2(tc), ejemplo: !!F.ejemplo, creado: F.creado || Date.now(),
+      pendiente: !!F.pendiente, vence: F.pendiente ? F.fecha : (F.vence || null)
     };
     const id = F.id || uid();
     const otroMes = ymOf(F.fecha) !== S.ym;
     let msg = F.id ? 'Cambios guardados' : (F.tipo === 'gasto' ? 'Gasto guardado' : F.tipo === 'ingreso' ? 'Ingreso guardado' : 'Transferencia guardada') + (otroMes ? ` en ${mesNombre(ymOf(F.fecha))}` : '');
-    const esOcio = F.tipo === 'gasto' && ocioSet().has(mov.categoriaId);
+    if (F.pendiente) msg = `Anotado para pagar el ${fechaCorta(F.fecha)}. Lo ves en Pagos del mes`;
+    if (F.pagando) msg = 'Pago registrado';
+    const esOcio = F.tipo === 'gasto' && !F.pendiente && ocioSet().has(mov.categoriaId);
     if (esOcio && !F.id) {
       const A = ocioAhora(movs()), today = todayStr();
       if (A.activo && ymOf(F.fecha) === curYM() && semanaIdx(+F.fecha.slice(8, 10)) === semanaIdx(+today.slice(8, 10))) {
@@ -1822,7 +1935,7 @@ SHEETS.fijo = {
         <div class="field"><label for="x-cat">Categoría</label><select id="x-cat" name="categoriaId">${selOpts(cats, X.categoriaId, 'Sin categoría')}</select></div></div>
       <div class="row2"><div class="field"><label for="x-dia">Día del mes</label><input type="text" class="inp" inputmode="numeric" id="x-dia" name="dia" value="${esc(X.dia || 1)}"></div>
         <div class="field" style="align-content:end"><label class="checkline"><input type="checkbox" name="activo"${X.activo !== false ? ' checked' : ''}> Activo</label></div></div>
-      <p class="hint">Cada mes aparece en "Fijos del mes" para registrarlo con un toque, y la proyección lo cuenta.</p>
+      <p class="hint">Cada mes aparece en "Pagos del mes" para marcarlo con un toque cuando lo pagás.</p>
       <p class="err" id="sheet-err" role="alert"></p>`;
     return { title: X.id ? 'Editar fijo' : 'Nuevo fijo', body: b, foot: (X.id ? delBtn() : '') + saveBtn() };
   },
@@ -1846,12 +1959,11 @@ SHEETS.fijo = {
 /* Objetivo */
 SHEETS.obj = {
   render(O) {
-    const i = O.id ? objInfo(S.objetivos[O.id] || O) : null, mon = O.moneda || 'ARS';
+    const mon = O.moneda || 'ARS';
     let b = `<div class="field"><label for="o-nombre">Nombre</label><input type="text" id="o-nombre" name="nombre" maxlength="40" value="${esc(O.nombre || '')}" placeholder="Ej.: Fondo de emergencia, Viaje" data-autofocus></div>
       <div class="field"><span class="flabel">Moneda</span><div class="seg">${seg('moneda', [['ARS', 'Pesos'], ['USD', 'Dólares']], mon)}</div></div>
       <div class="row2"><div class="field"><label for="o-meta">Cuánto necesitás</label><input type="text" class="inp" inputmode="decimal" id="o-meta" name="meta" value="${esc(toInput(O.meta ?? ''))}" placeholder="0"></div>
         <div class="field"><label for="o-fecha">Para cuándo</label><input type="date" id="o-fecha" name="fecha" value="${esc(O.fecha || addM(curYM(), 12) + '-01')}"></div></div>`;
-    if (i && i.aportes.length) b += `<div class="field"><span class="flabel">Ahorro sumado</span><div class="aportes">${i.aportes.map(a => `<div class="row"><span class="grow"><b class="num">${money(a.monto, mon)}</b><small>${fechaCorta(a.fecha)} ${a.fecha.slice(0, 4)}</small></span><button type="button" class="link" data-act="del-aporte" data-id="${a.id}">Quitar</button></div>`).join('')}</div></div>`;
     b += `<p class="err" id="sheet-err" role="alert"></p>`;
     return { title: O.id ? 'Editar meta' : 'Nueva meta', body: b, foot: (O.id ? delBtn('Eliminar meta') : '') + saveBtn() };
   },
@@ -1866,24 +1978,74 @@ SHEETS.obj = {
       : await run(() => putDoc('objetivos', uid(), { nombre, meta: round2(meta), moneda, fecha, aportes: {}, ejemplo: false }), 'Meta creada');
     if (ok) closeSheet();
   },
-  async del() { if (await run(() => delDoc('objetivos', SH.data.id), 'Meta eliminada')) closeSheet(); }
+  async del() {
+    const id = SH.data.id, ops = [];
+    for (const a of ahorrosList().filter(x => x.metaId === id)) {
+      if (a.legacy) ops.push({ op: 'merge', path: 'meses/' + ymOf(a.fecha), data: { ahorros: { [a.id]: { fecha: a.fecha, monto: round2(a.ars), metaId: null, tc: a.tc, creado: Date.now() } } } });
+      else ops.push({ op: 'merge', path: 'meses/' + a.doc, data: { ahorros: { [a.id]: { ...pick(a, ['fecha', 'monto', 'tc', 'creado']), metaId: null } } } });
+    }
+    ops.push({ op: 'del', path: 'objetivos/' + id });
+    if (await run(() => S.store.many(ops), ops.length > 1 ? 'Meta eliminada. Lo que guardaste queda en Ahorro general' : 'Meta eliminada')) closeSheet();
+  }
 };
-SHEETS.aporte = {
+const pick = (o, ks) => Object.fromEntries(ks.filter(k => o[k] !== undefined).map(k => [k, o[k]]));
+function openAhorro(opts = {}) {
+  let A = { fecha: todayStr(), metaId: opts.metaId || null, montoStr: '' };
+  if (opts.id) {
+    const a = ahorrosList().find(x => x.id === opts.id); if (!a) return;
+    A = { id: a.id, doc: a.doc, legacy: !!a.legacy, fecha: a.fecha, metaId: a.metaId || null, metaOrig: a.metaId || null, montoStr: toInput(Math.round(a.ars)), monto0: a.ars, creado: a.creado, tc: a.tc };
+  }
+  openSheet('ahorro', A);
+}
+SHEETS.ahorro = {
   render(A) {
-    const o = S.objetivos[A.objId] || {}, mon = o.moneda || 'ARS', i = objInfo(o);
-    const b = `<p class="hint">${esc(o.nombre)}: llevás ${money(i.ahorrado, mon)} de ${money(i.meta, mon)}. Anotá lo que separaste para esta meta.</p>
-      <div class="field"><label for="a-monto">Monto</label><div class="amount"><span>${mon === 'USD' ? 'US$' : '$'}</span><input id="a-monto" name="monto" inputmode="decimal" autocomplete="off" placeholder="0" value="${i.porMes > 0 && !i.lograda ? esc(toInput(Math.round(i.porMes))) : ''}" data-autofocus></div></div>
-      <div class="field"><label for="a-fecha">Fecha</label><input type="date" id="a-fecha" name="fecha" value="${todayStr()}"></div>
+    const list = movs(), imps = impactos(list), ym = curYM();
+    const R = cuentaDelMes(ym, list, imps, resumenMes(ym, imps));
+    const libre = Math.round(R.libre + (A.id && ymOf(A.fecha) === ym ? A.monto0 || 0 : 0));
+    const metas = Object.entries(S.objetivos).map(([id, o]) => ({ id, o, i: objInfo(o, id) })).filter(x => !x.i.lograda || x.id === A.metaId);
+    const b = `<p class="hint">${libre > 0 ? `Este mes te quedan <b>${money(libre)}</b> sin ahorrar.` : 'Este mes no te queda plata sin ahorrar, pero podés guardar igual.'}</p>
+      <div class="field"><label for="h-monto">Cuánto guardás</label><div class="amount"><span>$</span><input id="h-monto" name="monto" inputmode="decimal" autocomplete="off" placeholder="0" value="${esc(A.montoStr)}" data-autofocus></div>
+        ${libre > 0 && !A.id ? `<div class="quick"><button type="button" class="fchip" data-act="ah-fill" data-v="${libre}">Todo · ${money(libre)}</button><button type="button" class="fchip" data-act="ah-fill" data-v="${Math.round(libre / 2)}">La mitad · ${money(Math.round(libre / 2))}</button></div>` : ''}</div>
+      ${metas.length ? `<div class="field"><span class="flabel">Para qué</span><div class="chips" role="radiogroup">${chip('meta', '', 'Ahorro general', !A.metaId)}${metas.map(x => chip('meta', x.id, x.o.nombre, A.metaId === x.id)).join('')}</div></div>` : ''}
+      <div class="field"><label for="h-fecha">Fecha</label><input type="date" id="h-fecha" name="fecha" value="${esc(A.fecha)}"></div>
       <p class="err" id="sheet-err" role="alert"></p>`;
-    return { title: 'Sumar ahorro', body: b, foot: saveBtn('Sumar') };
+    return { title: A.id ? 'Editar ahorro' : 'Guardar en ahorro', body: b, foot: (A.id ? delBtn('Quitar') : '') + saveBtn(A.id ? 'Guardar cambios' : 'Guardar') };
   },
   async save(form) {
     const A = SH.data, monto = parseMonto(fval(form, 'monto')), fecha = fval(form, 'fecha') || todayStr();
-    if (!(monto > 0)) return setErr('Ingresá un monto mayor a cero.');
-    if (await run(() => updDoc('objetivos', A.objId, { aportes: { [uid()]: { fecha, monto: round2(monto) } } }), 'Ahorro sumado a la meta')) closeSheet();
+    if (!(monto > 0)) return setErr('Ingresá cuánto guardás.');
+    const metaId = radioVal(form, 'meta') || null;
+    const id = A.id && !A.legacy ? A.id : uid(), doc = ymOf(fecha);
+    const ops = [{ op: 'merge', path: 'meses/' + doc, data: { ahorros: { [id]: { fecha, monto: round2(monto), metaId, tc: A.tc || S.config.tc, creado: A.creado || Date.now() } } } }];
+    if (A.legacy) ops.push({ op: 'merge', path: 'objetivos/' + A.metaOrig, data: { aportes: { [A.id]: null } } });
+    else if (A.id && A.doc !== doc) ops.push({ op: 'merge', path: 'meses/' + A.doc, data: { ahorros: { [A.id]: null } } });
+    if (await run(() => S.store.many(ops), A.id ? 'Ahorro actualizado' : `Guardaste ${money(monto)} en ahorro`)) closeSheet();
+  },
+  async del() {
+    const A = SH.data;
+    const fn = A.legacy ? () => updDoc('objetivos', A.metaOrig, { aportes: { [A.id]: null } }) : () => S.store.merge('meses/' + A.doc, { ahorros: { [A.id]: null } });
+    if (await run(fn, 'Ahorro quitado')) closeSheet();
   }
 };
-
+/* Pago del resumen de la tarjeta */
+SHEETS.pagotc = {
+  render(D) {
+    const c = S.cuentas[D.cardId] || {}, x = resumenesMes(D.ym, impactos(movs())).find(r => r.id === D.cardId), pago = tcPago(D.cardId, D.ym);
+    const total = x ? x.total : 0, items = x ? x.items.slice().sort((a, b) => b.ars - a.ars) : [];
+    const b = `<p class="hint">Resumen de ${MES[+D.ym.slice(5) - 1]} de ${esc(c.nombre || 'la tarjeta')}${c.pagaCon ? `. Se descuenta de ${esc(cuentaName(c.pagaCon))} cuando lo marcás como pagado` : ''}.</p>
+      <div class="sum-big num">${money(total)}</div>
+      <div class="field"><label for="t-fecha">Fecha de pago</label><input type="date" id="t-fecha" name="fecha" value="${esc(pago?.fecha || todayStr())}"></div>
+      ${items.length ? `<details class="more"><summary>Ver ${items.length === 1 ? 'el consumo' : `los ${items.length} consumos`}</summary><div class="ledger">${items.map(q => `<div class="row"><span class="dot" style="background:${catVar(q.cat)}"></span><span class="grow"><b>${esc(q.m.nota || catName(q.cat))}</b><small>${q.cuota.n > 1 ? `Cuota ${q.cuota.k} de ${q.cuota.n}` : 'Un pago'} · ${fechaCorta(q.m.fecha)}</small></span><span class="num">${money(q.ars)}</span></div>`).join('')}</div></details>` : ''}
+      <p class="err" id="sheet-err" role="alert"></p>`;
+    return { title: pago ? 'Resumen pagado' : 'Pagar resumen', body: b, foot: (pago ? delBtn('Marcar sin pagar') : '') + saveBtn(pago ? 'Guardar' : 'Ya lo pagué') };
+  },
+  async save(form) {
+    const D = SH.data, fecha = fval(form, 'fecha') || todayStr();
+    const x = resumenesMes(D.ym, impactos(movs())).find(r => r.id === D.cardId);
+    if (await run(() => S.store.merge('meses/' + D.ym, { pagos: { ['tc_' + D.cardId]: { fecha, monto: round2(x ? x.total : 0) } } }), 'Resumen pagado')) closeSheet();
+  },
+  async del() { const D = SH.data; if (await run(() => S.store.merge('meses/' + D.ym, { pagos: { ['tc_' + D.cardId]: null } }), 'Resumen marcado sin pagar')) closeSheet(); }
+};
 /* Configuración */
 SHEETS.config = {
   render() {
@@ -1976,9 +2138,9 @@ async function exportar() {
   if (!list.length) { toast('Todavía no hay movimientos para exportar.'); return; }
   const cell = v => { const s = String(v ?? ''); return /[";\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
   const num = n => n == null ? '' : String(round2(n)).replace('.', ',');
-  const rows = [['Fecha', 'Tipo', 'Monto', 'Moneda', 'Cuenta', 'Categoría', 'Ocio', 'Cuotas', 'Cuenta destino', 'Monto destino', 'Nota', 'Tipo de cambio']];
+  const rows = [['Fecha', 'Tipo', 'Monto', 'Moneda', 'Cuenta', 'Categoría', 'Ocio', 'Cuotas', 'Cuenta destino', 'Monto destino', 'Nota', 'Tipo de cambio', 'Estado', 'Vence']];
   const oc = ocioSet();
-  for (const m of list.slice().reverse()) rows.push([m.fecha, m.tipo, num(m.monto), m.moneda, cuentaName(m.cuentaId), m.tipo === 'transferencia' ? '' : catName(m.categoriaId), oc.has(m.categoriaId) ? 'sí' : '', m.cuotas || 1, m.cuentaDestinoId ? cuentaName(m.cuentaDestinoId) : '', num(m.montoDestino), m.nota || '', num(m.tc)]);
+  for (const m of list.slice().reverse()) rows.push([m.fecha, m.tipo, num(m.monto), m.moneda, cuentaName(m.cuentaId), m.tipo === 'transferencia' ? '' : catName(m.categoriaId), oc.has(m.categoriaId) ? 'sí' : '', m.cuotas || 1, m.cuentaDestinoId ? cuentaName(m.cuentaDestinoId) : '', num(m.montoDestino), m.nota || '', num(m.tc), m.pendiente ? 'a pagar' : 'pagado', m.vence || '']);
   if (await saveFile(`libreta-movimientos-${todayStr()}.csv`, String.fromCharCode(0xfeff) + rows.map(r => r.map(cell).join(';')).join('\n'), 'text/csv')) toast('Archivo listo');
 }
 async function backup() {
@@ -2036,12 +2198,12 @@ document.addEventListener('click', e => {
     case 'edit-fijo': if (S.fijos[id]) openSheet('fijo', { id, ...S.fijos[id] }); break;
     case 'new-obj': openSheet('obj', { moneda: 'ARS' }); break;
     case 'edit-obj': if (S.objetivos[id]) openSheet('obj', { id, ...S.objetivos[id] }); break;
-    case 'aportar': if (S.objetivos[id]) openSheet('aporte', { objId: id }); break;
-    case 'del-aporte': {
-      const oid = SH?.data?.id; if (!oid) break;
-      run(() => updDoc('objetivos', oid, { aportes: { [id]: null } }), 'Ahorro quitado').then(ok => { if (ok) b.closest('.row')?.remove(); });
-      break;
-    }
+    case 'aportar': if (S.objetivos[id]) openAhorro({ metaId: id }); break;
+    case 'ahorrar': openAhorro(); break;
+    case 'edit-ahorro': openAhorro({ id }); break;
+    case 'ah-fill': { const i = $('#h-monto'); if (i) { i.value = toInput(+b.dataset.v); i.focus(); } break; }
+    case 'pagar-mov': openPagoMov(id, b.dataset.doc); break;
+    case 'pagar-tc': openSheet('pagotc', { cardId: id, ym: S.ym }); break;
     case 'config': openSheet('config', {}); break;
     case 'export': exportar(); break;
     case 'backup': backup(); break;
