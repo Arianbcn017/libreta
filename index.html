@@ -378,6 +378,37 @@ button, .chip span, .seg span { touch-action: manipulation; }
 .bare .top { display: none; }
 .login-card .link { justify-self: center; }
 .ajustes .grow small { white-space: normal; }
+
+/* Cuenta del mes */
+.mes-hero .hero-lbl { font-size: 14.5px; color: var(--ink-2); font-weight: 600; margin-top: 10px; }
+.mes-hero .big { margin-top: 2px; }
+.mes-hero .sub b { color: var(--ink); font-weight: 600; }
+.flow { position: relative; display: flex; gap: 2px; height: 14px; margin-top: 16px; border-radius: 7px; background: var(--sheet-2); box-shadow: inset 0 0 0 1px var(--rule); }
+.flow > span { display: block; height: 100%; min-width: 0; flex: 0 1 0; }
+.flow > span:first-child { border-radius: 7px 0 0 7px; }
+.flow > span:last-of-type { border-radius: 0 7px 7px 0; }
+.flow > span:only-of-type { border-radius: 7px; }
+.flow .f-out { background: var(--ink-2); }
+.flow .f-due { background: var(--warn); }
+.flow .f-left { background: var(--pos); }
+.flow .f-mark { position: absolute; top: -4px; bottom: -4px; width: 3px; margin-left: -1.5px; border-radius: 2px; background: var(--neg); }
+.recibo { margin: 14px 0 0; display: grid; }
+.recibo .rl { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px dashed var(--rule-strong); }
+.recibo dt { display: flex; align-items: center; gap: 9px; font-size: 15px; font-weight: 500; min-width: 0; }
+.recibo dd { margin: 0; font-family: var(--font-num); font-variant-numeric: tabular-nums; font-size: 16px; font-weight: 500; white-space: nowrap; letter-spacing: -.02em; }
+.recibo .rl.sub { padding-top: 0; }
+.recibo .rl.sub dt, .recibo .rl.sub dd { font-size: 12.5px; color: var(--ink-2); font-weight: 400; }
+.recibo .rl.sub dt { padding-left: 19px; }
+.recibo .rl:has(+ .rl.sub) { border-bottom: 0; padding-bottom: 2px; }
+.recibo .rl.total { border-bottom: 0; border-top: 2px solid var(--ink); margin-top: 4px; padding-top: 10px; }
+.recibo .rl.total dt, .recibo .rl.total dd { font-weight: 700; font-size: 17px; }
+.recibo dd.neg { color: var(--neg); }
+.sw { width: 10px; height: 10px; border-radius: 3px; flex: none; display: inline-block; }
+.sw.in { background: transparent; box-shadow: inset 0 0 0 2px var(--ink-3); }
+.sw.out { background: var(--ink-2); }
+.sw.due { background: var(--warn); }
+.sw.left { background: var(--pos); }
+.sw.neg { background: var(--neg); }
 </style>
 </head>
 <body>
@@ -388,8 +419,8 @@ button, .chip span, .seg span { touch-action: manipulation; }
 
 <nav class="tabs" aria-label="Secciones">
   <div class="tabs-in">
-    <button class="tab" data-act="tab" data-tab="semana"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/><path d="M7 14h10" stroke-width="3"/></svg>Semana</button>
     <button class="tab" data-act="tab" data-tab="mes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3.5h11.5a2 2 0 0 1 2 2V20.5H7a2 2 0 0 1-2-2z"/><path d="M5 18.5a2 2 0 0 1 2-2h11.5"/><path d="M9 8h6M9 11.5h4"/></svg>Mes</button>
+    <button class="tab" data-act="tab" data-tab="semana"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/><path d="M7 14h10" stroke-width="3"/></svg>Semana</button>
     <button class="tab tab-add" data-act="add" aria-label="Cargar movimiento"><span class="fab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></button>
     <button class="tab" data-act="tab" data-tab="movimientos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4.5 6h.01M4.5 12h.01M4.5 18h.01" stroke-width="2.6"/></svg>Movimientos</button>
     <button class="tab" data-act="tab" data-tab="ahorro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 17.5l5.5-5.5 4 4 7.5-7.5"/><path d="M15 8.5h5.5V14"/></svg>Ahorro</button>
@@ -410,7 +441,7 @@ button, .chip span, .seg span { touch-action: manipulation; }
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=20260930140830"></script>
+<script src="firebase-config.js?v=20261001141133"></script>
 <script>window.LIBRETA_ENV = 'web';</script>
 <script>
 (() => {
@@ -512,14 +543,14 @@ const S = {
   config: { ...DEF_CONFIG }, hasConfig: false,
   cuentas: {}, categorias: {}, fijos: {}, objetivos: {}, meses: {},
   loaded: {},
-  tab: 'semana', ahorro: LS.get('ahorro', 'metas'), lastKey: null, ym: curYM(),
+  tab: 'mes', ahorro: LS.get('ahorro', 'metas'), lastKey: null, ym: curYM(),
   f: { tipo: 'todos', q: '' }, proj: LS.get('proj', 'ARS'), _proj: null, login: null
 };
 function tabFromHash(h) {
   if (h === 'metas' || h === 'proyeccion') { S.ahorro = h; return 'ahorro'; }
   return TABS.includes(h) ? h : null;
 }
-S.tab = tabFromHash(location.hash.slice(1)) || tabFromHash(LS.get('tab', 'semana')) || 'semana';
+S.tab = tabFromHash(location.hash.slice(1)) || tabFromHash(LS.get('tab', 'mes')) || 'mes';
 
 /* ---------- almacenamiento ---------- */
 function artifactStore(db) {
@@ -837,7 +868,7 @@ function headerHTML() {
       <button class="icon-btn" data-act="next-m" aria-label="Mes siguiente">${IC.next}</button>
     </div>${off}${gear}`;
   }
-  if (S.tab === 'ajustes') return `<button class="icon-btn" data-act="tab" data-tab="${S.prevTab || 'semana'}" aria-label="Volver">${IC.back}</button><h1 class="vtitle">Ajustes</h1>${off || '<span style="width:38px;flex:none"></span>'}`;
+  if (S.tab === 'ajustes') return `<button class="icon-btn" data-act="tab" data-tab="${S.prevTab || 'mes'}" aria-label="Volver">${IC.back}</button><h1 class="vtitle">Ajustes</h1>${off || '<span style="width:38px;flex:none"></span>'}`;
   const titles = { semana: 'Semana', ahorro: 'Ahorro' };
   return `${brand()}<span class="spacer"></span>${off}<h1 class="vtitle" style="margin:0 4px 0 8px">${titles[S.tab]}</h1>${gear}`;
 }
@@ -997,27 +1028,81 @@ function viewMes({ list, imps, sal }) {
   if (hayEjemplos(list)) h += ejemplosBanner();
   if (!Object.keys(S.cuentas).length) return h + onboardingHTML();
   const r = resumenMes(S.ym, imps);
-  const tasa = r.ing > 0 ? Math.round(r.res / r.ing * 100) : null;
-  const mesTxt = MES[+S.ym.slice(5) - 1];
-  const hayDatosMes = list.some(m => ymOf(m.fecha) === S.ym) || r.gas > 0;
-  h += `<section class="sheet hero" aria-label="Resultado del mes">
-    <div class="eyebrow">Resultado de ${mesTxt}</div>
-    <div class="big ${r.res < 0 ? 'neg' : ''}">${money(r.res, 'ARS', { sign: true })}</div>
-    <div class="sub">${r.ing || r.gas ? `≈ ${money(r.resU, 'USD', { sign: true })}` : ''}${tasa != null ? ` · ${r.res >= 0 ? `ahorraste el ${tasa}% de lo que entró` : `gastaste ${money(-r.res)} más de lo que entró`}` : ''}${!hayDatosMes ? `Todavía no hay movimientos en ${mesTxt}.` : ''}</div>
-    <div class="split">
-      <div><span class="lbl">Entró</span><span class="num">${money(r.ing)}</span></div>
-      <div><span class="lbl">Salió</span><span class="num">${money(r.gas)}</span></div>
-    </div>
-    ${r.cuotas > 0 ? `<p class="note">Lo que salió incluye ${money(r.cuotas)} de tarjeta que se paga en ${mesTxt}.</p>` : ''}
-    ${!hayDatosMes ? `<div style="margin-top:12px"><button class="btn btn-sm btn-primary" data-act="add">Cargar el primero</button></div>` : ''}
-  </section>`;
+  const R = cuentaDelMes(S.ym, list, imps, r);
+  h += resumenHTML(R);
   h += ocioMini(list);
-  h += primerosPasos(list);
-  h += cuentasHTML(sal);
-  h += fijosHTML(S.ym, list);
+  h += pendientesHTML(R);
   h += categoriasHTML(r);
+  h += ultimosHTML(list);
+  h += cuentasHTML(sal);
   h += tarjetasHTML(S.ym, imps, list);
+  h += primerosPasos(list);
   return h;
+}
+/* La cuenta simple del mes: lo que entró, lo que salió, lo que falta y con cuánto terminás */
+function cuentaDelMes(ym, list, imps, r) {
+  const cur = curYM(), pasado = ym < cur, actual = ym === cur;
+  let tarjeta = 0, comprasTarjeta = 0;
+  for (const x of imps) if (x.ym === ym && x.tipo === 'gasto' && x.cuota) tarjeta += x.ars;
+  for (const m of list) if (m.tipo === 'gasto' && isCard(m.cuentaId) && ymOf(m.fecha) === ym) comprasTarjeta += toARS(m.monto, m.moneda, tcOf(m));
+  let faltaCobrar = 0, faltaPagar = 0;
+  const pend = pasado ? [] : fijosMes(ym, list).filter(p => !p.hecho);
+  for (const p of pend) { const a = toARS(+p.f.monto || 0, p.f.moneda, S.config.tc); if (p.f.tipo === 'ingreso') faltaCobrar += a; else faltaPagar += a; }
+  const entra = r.ing + faltaCobrar, queda = entra - r.gas - faltaPagar;
+  const day = +todayStr().slice(8, 10), dias = actual ? daysIn(ym) - day + 1 : 0;
+  return { ym, pasado, actual, ing: r.ing, gas: r.gas, tarjeta, comprasTarjeta, faltaCobrar, faltaPagar, pend, entra, queda, dias, porDia: actual && queda > 0 ? queda / dias : 0, vacio: !r.ing && !r.gas && !pend.length };
+}
+function resumenHTML(R) {
+  const mesTxt = MES[+R.ym.slice(5) - 1], Mes = cap(mesTxt);
+  if (R.vacio) return `<section class="sheet hero mes-hero"><div class="eyebrow">${Mes}</div><div class="hero-lbl">Todavía no hay movimientos en ${mesTxt}.</div>
+    <div style="margin-top:14px"><button class="btn btn-primary" data-act="add">Cargar el primero</button></div></section>`;
+  const neg = R.queda < 0;
+  const lbl = R.pasado ? (neg ? 'Gastaste más de lo que entró' : 'Te quedó') : (neg ? 'Te faltarían' : 'Te quedaría a fin de mes');
+  const eyebrow = R.pasado ? `${Mes} · mes cerrado` : R.actual ? `${Mes} · ${R.dias === 1 ? 'último día' : `quedan ${R.dias} días`}` : `${Mes} · lo que viene`;
+  const base = Math.max(R.entra, R.gas + R.faltaPagar) || 1;
+  const w = v => Math.max(0, v / base * 100).toFixed(2) + '%';
+  const fg = v => Math.max(0, v / base).toFixed(4);
+  const marca = neg && R.entra > 0 ? `<i class="f-mark" style="left:${w(R.entra)}" title="Lo que entró"></i>` : '';
+  const finMes = `${diaSemana(`${R.ym}-${pad(daysIn(R.ym))}`)} ${daysIn(R.ym)}`;
+  const sub = R.actual && !neg ? `Podés gastar <b>${money(R.porDia)} por día</b> hasta el ${finMes}.`
+    : neg ? `Lo que sale supera a lo que entra por ${money(-R.queda)}.` : '';
+  const aria = `Entró ${money(R.entra)}, gastaste ${money(R.gas)}${R.faltaPagar ? `, falta pagar ${money(R.faltaPagar)}` : ''}, ${neg ? 'faltan' : 'quedan'} ${money(Math.abs(R.queda))}`;
+  return `<section class="sheet hero mes-hero" aria-label="Cuenta del mes">
+    <div class="eyebrow">${eyebrow}</div>
+    <div class="hero-lbl">${lbl}</div>
+    <div class="big ${neg ? 'neg' : ''}">${money(Math.abs(R.queda))}</div>
+    ${sub ? `<div class="sub">${sub}</div>` : ''}
+    <div class="flow" role="img" aria-label="${aria}">
+      <span class="f-out" style="flex-grow:${fg(R.gas)}"></span>${R.faltaPagar ? `<span class="f-due" style="flex-grow:${fg(R.faltaPagar)}"></span>` : ''}${!neg ? `<span class="f-left" style="flex-grow:${fg(R.queda)}"></span>` : ''}${marca}
+    </div>
+    <dl class="recibo">
+      <div class="rl"><dt><i class="sw in"></i>Entró</dt><dd>${money(R.ing)}</dd></div>
+      ${R.faltaCobrar ? `<div class="rl sub"><dt>Falta cobrar</dt><dd>+${money(R.faltaCobrar)}</dd></div>` : ''}
+      <div class="rl"><dt><i class="sw out"></i>Gastaste</dt><dd>−${money(R.gas)}</dd></div>
+      ${R.tarjeta ? `<div class="rl sub"><dt>Incluye el resumen de la tarjeta</dt><dd>${money(R.tarjeta)}</dd></div>` : ''}
+      ${R.faltaPagar ? `<div class="rl"><dt><i class="sw due"></i>Falta pagar</dt><dd>−${money(R.faltaPagar)}</dd></div>` : ''}
+      <div class="rl total"><dt><i class="sw ${neg ? 'neg' : 'left'}"></i>${R.pasado ? (neg ? 'Te faltó' : 'Te quedó') : (neg ? 'Te faltarían' : 'Te quedaría')}</dt><dd class="${neg ? 'neg' : ''}">${neg ? '−' : ''}${money(Math.abs(R.queda))}</dd></div>
+    </dl>
+    ${R.comprasTarjeta && !R.pasado ? `<p class="note">Además compraste ${money(R.comprasTarjeta)} con tarjeta en ${mesTxt}. Eso no está en la cuenta: lo pagás desde ${mesNombre(addM(R.ym, 1))}.</p>` : ''}
+  </section>`;
+}
+function pendientesHTML(R) {
+  if (!R.pend.length) return '';
+  const mesTxt = MES[+R.ym.slice(5) - 1], mc = MES_C[+R.ym.slice(5) - 1];
+  const row = x => `<div class="row"><span class="day">${pad(Math.min(x.f.dia || 1, daysIn(R.ym)))}<small>${mc}</small></span>
+      <span class="grow"><b>${esc(x.f.nombre)}</b><small>${x.f.tipo === 'ingreso' ? 'Por cobrar' : 'Por pagar'} · ${esc(cuentaName(x.f.cuentaId))}</small></span>
+      <span class="num ${x.f.tipo === 'ingreso' ? 'pos' : ''}">${x.f.tipo === 'ingreso' ? '+' : ''}${money(+x.f.monto, x.f.moneda)}</span>
+      <button class="btn btn-sm btn-ghost" data-act="reg-fijo" data-id="${x.id}">${x.f.tipo === 'ingreso' ? 'Cobré' : 'Pagué'}</button></div>`;
+  const top = R.pend.slice(0, 4), resto = R.pend.slice(4);
+  return `<section class="block"><div class="block-h"><h2>Pendientes de ${mesTxt}</h2><span class="muted">${R.pend.length} ${R.pend.length === 1 ? 'fijo' : 'fijos'}</span></div>
+    <div class="sheet ledger">${top.map(row).join('')}${resto.length ? `<details class="more"><summary>Ver ${resto.length} más</summary><div class="ledger">${resto.map(row).join('')}</div></details>` : ''}</div>
+    <p class="hint" style="margin:8px 2px 0">Cuando lo pagues o lo cobres, tocá el botón y se anota solo.</p></section>`;
+}
+function ultimosHTML(list) {
+  const delMes = list.filter(m => ymOf(m.fecha) === S.ym);
+  if (!delMes.length) return '';
+  return `<section class="block"><div class="block-h"><h2>Últimos movimientos</h2><button class="link" data-act="tab" data-tab="movimientos">Ver todos (${delMes.length})</button></div>
+    <div class="sheet ledger">${delMes.slice(0, 5).map(m => movRow(m, true)).join('')}</div></section>`;
 }
 function ocioMini(list) {
   if (S.ym !== curYM()) return '';
@@ -1055,34 +1140,18 @@ function cuentasHTML(sal) {
     return `<button class="row" data-act="edit-cuenta" data-id="${c.id}"><span class="grow"><b>${esc(c.nombre)}</b><small>${TIPOS_CUENTA[c.tipo] || ''}${c.moneda === 'USD' ? ` · ≈ ${money(s.saldo * S.config.tc)}` : ''}</small></span><span class="num ${s.saldo < 0 ? 'neg' : ''}">${money(s.saldo, c.moneda)}</span></button>`;
   }).join('');
   const tcTxt = `Dólar a ${money(S.config.tc)}${S.config.tcFecha ? ` (${fechaCorta(S.config.tcFecha)})` : ''}`;
-  return `<section class="block"><div class="block-h"><h2>Tus cuentas hoy</h2><button class="link" data-act="config">${tcTxt}</button></div>
-    <div class="sheet ledger">${rows}
-      <div class="row row-total"><span class="grow"><b>Disponible</b><small>${money(pat.pesos)} + ${money(pat.dolares, 'USD')}</small></span><span class="num">${money(pat.disp)}</span></div>
-      ${pat.deuda > 0 ? `<div class="row row-total"><span class="grow"><b>Neto</b><small>Menos ${money(pat.deuda)} en cuotas</small></span><span class="num ${pat.neto < 0 ? 'neg' : ''}">${money(pat.neto)}</span></div>` : ''}
-    </div></section>`;
-}
-function fijosHTML(ym, list) {
-  const fm = fijosMes(ym, list);
-  const mesTxt = MES[+ym.slice(5) - 1];
-  if (!fm.length) return `<section class="block"><div class="block-h"><h2>Fijos de ${mesTxt}</h2></div><div class="sheet empty"><p>Cargá alquiler, servicios, suscripciones o tu sueldo como fijos y cada mes te aparecen acá para registrarlos con un toque.</p><button class="btn btn-sm btn-ghost" data-act="new-fijo">Agregar un fijo</button></div></section>`;
-  const pend = fm.filter(x => !x.hecho), hechos = fm.filter(x => x.hecho);
-  const pendTotal = pend.reduce((s, x) => s + (x.f.tipo === 'gasto' ? toARS(+x.f.monto, x.f.moneda, S.config.tc) : 0), 0);
-  const row = (x, done) => `<div class="row">${done ? IC.check : `<span class="day">${pad(Math.min(x.f.dia || 1, daysIn(ym)))}<small>${MES_C[+ym.slice(5) - 1]}</small></span>`}
-      <span class="grow"><b>${esc(x.f.nombre)}</b><small>${esc(catName(x.f.categoriaId))} · ${esc(cuentaName(x.f.cuentaId))}</small></span>
-      <span class="num ${x.f.tipo === 'ingreso' ? 'pos' : ''}">${x.f.tipo === 'ingreso' ? '+' : ''}${money(+x.f.monto, x.f.moneda)}</span>
-      ${done ? '' : `<button class="btn btn-sm btn-ghost" data-act="reg-fijo" data-id="${x.id}">Registrar</button>`}</div>`;
-  return `<section class="block"><div class="block-h"><h2>Fijos de ${mesTxt}</h2><span class="muted">${hechos.length} de ${fm.length} registrados</span></div>
+  return `<section class="block"><div class="block-h"><h2>Tus cuentas</h2><button class="link" data-act="config">${tcTxt}</button></div>
     <div class="sheet ledger">
-      ${pend.length ? pend.map(x => row(x, false)).join('') : `<div class="row"><span class="grow"><b>Todo registrado</b><small>No quedan fijos pendientes este mes.</small></span></div>`}
-      ${pend.length && pendTotal ? `<div class="row row-total"><span class="grow"><b>Falta pagar</b></span><span class="num">${money(pendTotal)}</span></div>` : ''}
-      ${hechos.length ? `<details class="more"><summary>Ver registrados (${hechos.length})</summary><div class="ledger">${hechos.map(x => row(x, true)).join('')}</div></details>` : ''}
+      <div class="row row-total"><span class="grow"><b>Tenés hoy</b><small>${money(pat.pesos)} + ${money(pat.dolares, 'USD')}</small></span><span class="num">${money(pat.disp)}</span></div>
+      ${pat.deuda > 0 ? `<div class="row row-total"><span class="grow"><b>Cuotas por pagar</b><small>De tarjeta, en los próximos meses</small></span><span class="num neg">${money(-pat.deuda)}</span></div>` : ''}
+      <details class="more"><summary>Ver cada cuenta</summary><div class="ledger">${rows}</div></details>
     </div></section>`;
 }
 function categoriasHTML(r) {
   const entries = Object.entries(r.porCat).filter(([, v]) => v > 0.5).sort((a, b) => b[1] - a[1]);
   if (!entries.length) return '';
   const tieneBudget = entries.some(([k]) => +S.categorias[k]?.presupuesto > 0);
-  const rows = entries.map(([k, v]) => {
+  const html = entries.map(([k, v]) => {
     const pres = +S.categorias[k]?.presupuesto || 0;
     let bar, meta;
     if (pres > 0) {
@@ -1095,8 +1164,10 @@ function categoriasHTML(r) {
       meta = `<span>${Math.round(p * 100)}% de lo que salió</span><span>${S.categorias[k]?.ocio ? 'ocio' : 'sin presupuesto'}</span>`;
     }
     return `<div class="cat-row"><div class="cat-top"><span class="dot" style="background:${k === '_' ? 'var(--ink-3)' : catVar(k)}"></span><b>${esc(catName(k === '_' ? null : k))}</b><span class="num">${money(v)}</span></div>${bar}<div class="cat-meta">${meta}</div></div>`;
-  }).join('');
-  return `<section class="block"><div class="block-h"><h2>En qué se fue</h2>${tieneBudget ? '' : '<button class="link" data-act="tab" data-tab="ajustes">Poner presupuestos</button>'}</div><div class="sheet ledger">${rows}</div></section>`;
+  });
+  const top = html.slice(0, 5).join(''), resto = html.slice(5);
+  return `<section class="block"><div class="block-h"><h2>En qué gastaste</h2>${tieneBudget ? '' : '<button class="link" data-act="tab" data-tab="ajustes">Poner presupuestos</button>'}</div>
+    <div class="sheet ledger">${top}${resto.length ? `<details class="more"><summary>Ver ${resto.length} ${resto.length === 1 ? 'categoría más' : 'categorías más'}</summary><div class="ledger">${resto.join('')}</div></details>` : ''}</div></section>`;
 }
 function tarjetasHTML(ym, imps, list) {
   const cards = cuentasList().filter(c => c.tipo === 'tarjeta');
@@ -1149,7 +1220,7 @@ function movListHTML({ list }) {
   }
   return h;
 }
-function movRow(m) {
+function movRow(m, conFecha) {
   let title, sub, amt, cls = '', tags = '';
   if (m.tipo === 'transferencia') {
     title = m.nota || 'Transferencia';
@@ -1165,6 +1236,7 @@ function movRow(m) {
     if (m.fijoId) tags += `<span class="tag">fijo</span>`;
   }
   if (m.ejemplo) tags += `<span class="tag">ejemplo</span>`;
+  if (conFecha === true) sub = `${m.fecha === todayStr() ? 'Hoy' : m.fecha === addD(todayStr(), -1) ? 'Ayer' : fechaCorta(m.fecha)} · ${sub}`;
   const dot = m.tipo === 'transferencia' ? 'var(--ink-3)' : catVar(m.categoriaId);
   return `<button class="row" data-act="edit-mov" data-id="${m.id}" data-doc="${m.doc}"><span class="dot" style="background:${dot}"></span><span class="grow"><b>${esc(title)}</b><small>${esc(sub)}</small></span><span class="amt"><span class="num ${cls}">${amt}</span>${tags ? `<span style="display:flex;gap:4px">${tags}</span>` : ''}</span></button>`;
 }

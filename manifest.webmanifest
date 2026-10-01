@@ -4,7 +4,7 @@
   "short_name": "Libreta",
   "description": "Gastos del día, ocio semanal, cuotas, pesos y dólares, metas y proyección.",
   "lang": "es-AR",
-  "start_url": "./#semana",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
