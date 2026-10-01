@@ -390,6 +390,7 @@ button, .chip span, .seg span { touch-action: manipulation; }
 .flow > span:only-of-type { border-radius: 7px; }
 .flow .f-out { background: var(--ink-2); }
 .flow .f-due { background: var(--warn); }
+.flow .f-ocio { background: var(--accent); }
 .flow .f-left { background: var(--pos); }
 .flow .f-mark { position: absolute; top: -4px; bottom: -4px; width: 3px; margin-left: -1.5px; border-radius: 2px; background: var(--neg); }
 .recibo { margin: 14px 0 0; display: grid; }
@@ -407,6 +408,7 @@ button, .chip span, .seg span { touch-action: manipulation; }
 .sw.in { background: transparent; box-shadow: inset 0 0 0 2px var(--ink-3); }
 .sw.out { background: var(--ink-2); }
 .sw.due { background: var(--warn); }
+.sw.ocio { background: var(--accent); }
 .sw.left { background: var(--pos); }
 .sw.neg { background: var(--neg); }
 </style>
@@ -441,8 +443,8 @@ button, .chip span, .seg span { touch-action: manipulation; }
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=20261001142411"></script>
-<script>window.LIBRETA_ENV = 'web'; window.LIBRETA_BUILD = '20261001142411';</script>
+<script src="firebase-config.js?v=20261001143834"></script>
+<script>window.LIBRETA_ENV = 'web'; window.LIBRETA_BUILD = '20261001143834';</script>
 <script>
 (() => {
 'use strict';
@@ -812,6 +814,18 @@ function ocioMes(ym, list) {
   });
   return { mensual, base, modo, W, total: acc, pool, inicio, cats };
 }
+// Lo que todavía queda por gastar del presupuesto de ocio de un mes (para separarlo en la cuenta del mes).
+function ocioPorGastar(ym, list) {
+  const O = ocioMes(ym, list);
+  if (!(O.mensual > 0) || !O.cats.size) return { activo: false, resta: 0, usado: 0, mensual: 0 };
+  const cur = curYM();
+  if (ym < cur) return { activo: true, resta: 0, usado: O.total, mensual: O.pool };
+  const wi = ym === cur ? semanaIdx(+todayStr().slice(8, 10)) : 0;
+  const resta = O.modo === 'fijo'
+    ? O.W.reduce((t, w, i) => t + (w.fuera || i < wi ? 0 : Math.max(0, O.base - w.gastado)), 0)
+    : Math.max(0, O.pool - O.total);
+  return { activo: true, resta, usado: O.total, mensual: O.pool };
+}
 function ocioAhora(list) {
   const ym = curYM(), day = +todayStr().slice(8, 10);
   const O = ocioMes(ym, list), wi = semanaIdx(day), w = O.W[wi];
@@ -1050,9 +1064,11 @@ function cuentaDelMes(ym, list, imps, r) {
   let faltaCobrar = 0, faltaPagar = 0;
   const pend = pasado ? [] : fijosMes(ym, list).filter(p => !p.hecho);
   for (const p of pend) { const a = toARS(+p.f.monto || 0, p.f.moneda, S.config.tc); if (p.f.tipo === 'ingreso') faltaCobrar += a; else faltaPagar += a; }
-  const entra = r.ing + faltaCobrar, queda = entra - r.gas - faltaPagar;
+  const oc = pasado ? { activo: false, resta: 0 } : ocioPorGastar(ym, list);
+  const ocio = oc.activo ? oc.resta : 0;
+  const entra = r.ing + faltaCobrar, queda = entra - r.gas - faltaPagar - ocio;
   const day = +todayStr().slice(8, 10), dias = actual ? daysIn(ym) - day + 1 : 0;
-  return { ym, pasado, actual, ing: r.ing, gas: r.gas, tarjeta, comprasTarjeta, faltaCobrar, faltaPagar, pend, entra, queda, dias, porDia: actual && queda > 0 ? queda / dias : 0, vacio: !r.ing && !r.gas && !pend.length };
+  return { ym, pasado, actual, ing: r.ing, gas: r.gas, tarjeta, comprasTarjeta, faltaCobrar, faltaPagar, pend, ocio, ocioActivo: oc.activo, ocioMensual: oc.mensual || 0, ocioUsado: oc.usado || 0, entra, queda, dias, porDia: actual && queda > 0 ? queda / dias : 0, vacio: !r.ing && !r.gas && !pend.length };
 }
 function resumenHTML(R) {
   const mesTxt = MES[+R.ym.slice(5) - 1], Mes = cap(mesTxt);
@@ -1061,21 +1077,21 @@ function resumenHTML(R) {
   const neg = R.queda < 0;
   const lbl = R.pasado ? (neg ? 'Gastaste más de lo que entró' : 'Te quedó') : (neg ? 'Te faltarían' : 'Te quedaría a fin de mes');
   const eyebrow = R.pasado ? `${Mes} · mes cerrado` : R.actual ? `${Mes} · ${R.dias === 1 ? 'último día' : `quedan ${R.dias} días`}` : `${Mes} · lo que viene`;
-  const base = Math.max(R.entra, R.gas + R.faltaPagar) || 1;
+  const base = Math.max(R.entra, R.gas + R.faltaPagar + R.ocio) || 1;
   const w = v => Math.max(0, v / base * 100).toFixed(2) + '%';
   const fg = v => Math.max(0, v / base).toFixed(4);
   const marca = neg && R.entra > 0 ? `<i class="f-mark" style="left:${w(R.entra)}" title="Lo que entró"></i>` : '';
   const finMes = `${diaSemana(`${R.ym}-${pad(daysIn(R.ym))}`)} ${daysIn(R.ym)}`;
-  const sub = R.actual && !neg ? `Podés gastar <b>${money(R.porDia)} por día</b> hasta el ${finMes}.`
+  const sub = R.actual && !neg ? (R.ocioActivo ? `Ya separé tu ocio y lo que falta pagar: <b>esto es lo que te sobraría</b> para ahorrar.` : `Podés gastar <b>${money(R.porDia)} por día</b> hasta el ${finMes}.`)
     : neg ? `Lo que sale supera a lo que entra por ${money(-R.queda)}.` : '';
-  const aria = `Entró ${money(R.entra)}, gastaste ${money(R.gas)}${R.faltaPagar ? `, falta pagar ${money(R.faltaPagar)}` : ''}, ${neg ? 'faltan' : 'quedan'} ${money(Math.abs(R.queda))}`;
+  const aria = `Entró ${money(R.entra)}, gastaste ${money(R.gas)}${R.faltaPagar ? `, falta pagar ${money(R.faltaPagar)}` : ''}${R.ocioActivo ? `, ocio por gastar ${money(R.ocio)}` : ''}, ${neg ? 'faltan' : 'quedan'} ${money(Math.abs(R.queda))}`;
   return `<section class="sheet hero mes-hero" aria-label="Cuenta del mes">
     <div class="eyebrow">${eyebrow}</div>
     <div class="hero-lbl">${lbl}</div>
     <div class="big ${neg ? 'neg' : ''}">${money(Math.abs(R.queda))}</div>
     ${sub ? `<div class="sub">${sub}</div>` : ''}
     <div class="flow" role="img" aria-label="${aria}">
-      <span class="f-out" style="flex-grow:${fg(R.gas)}"></span>${R.faltaPagar ? `<span class="f-due" style="flex-grow:${fg(R.faltaPagar)}"></span>` : ''}${!neg ? `<span class="f-left" style="flex-grow:${fg(R.queda)}"></span>` : ''}${marca}
+      <span class="f-out" style="flex-grow:${fg(R.gas)}"></span>${R.faltaPagar ? `<span class="f-due" style="flex-grow:${fg(R.faltaPagar)}"></span>` : ''}${R.ocio > 0 ? `<span class="f-ocio" style="flex-grow:${fg(R.ocio)}"></span>` : ''}${!neg ? `<span class="f-left" style="flex-grow:${fg(R.queda)}"></span>` : ''}${marca}
     </div>
     <dl class="recibo">
       <div class="rl"><dt><i class="sw in"></i>Entró</dt><dd>${money(R.ing)}</dd></div>
@@ -1083,6 +1099,8 @@ function resumenHTML(R) {
       <div class="rl"><dt><i class="sw out"></i>Gastaste</dt><dd>−${money(R.gas)}</dd></div>
       ${R.tarjeta ? `<div class="rl sub"><dt>Incluye el resumen de la tarjeta</dt><dd>${money(R.tarjeta)}</dd></div>` : ''}
       ${R.faltaPagar ? `<div class="rl"><dt><i class="sw due"></i>Falta pagar</dt><dd>−${money(R.faltaPagar)}</dd></div>` : ''}
+      ${R.ocioActivo ? `<div class="rl"><dt><i class="sw ocio"></i>Ocio que te queda</dt><dd>−${money(R.ocio)}</dd></div>
+      <div class="rl sub"><dt>${R.ocioUsado > 0 ? `Ya usaste ${money(R.ocioUsado)} de ${money(R.ocioMensual)}` : `Tu presupuesto de ocio: ${money(R.ocioMensual)}`}</dt><dd></dd></div>` : ''}
       <div class="rl total"><dt><i class="sw ${neg ? 'neg' : 'left'}"></i>${R.pasado ? (neg ? 'Te faltó' : 'Te quedó') : (neg ? 'Te faltarían' : 'Te quedaría')}</dt><dd class="${neg ? 'neg' : ''}">${neg ? '−' : ''}${money(Math.abs(R.queda))}</dd></div>
     </dl>
     ${R.comprasTarjeta && !R.pasado ? `<p class="note">Además compraste ${money(R.comprasTarjeta)} con tarjeta en ${mesTxt}. Eso no está en la cuenta: lo pagás desde ${mesNombre(addM(R.ym, 1))}.</p>` : ''}
@@ -1640,7 +1658,7 @@ SHEETS.ocio = {
   input() {
     const h = $('#ocio-hint'); if (!h) return;
     const v = parseMonto(fval($('#sheet'), 'mensual'));
-    h.textContent = v > 0 ? `Son ${money(v / 4)} por semana.` : 'Lo divido en 4 semanas: del 1 al 7, del 8 al 14, del 15 al 21 y del 22 a fin de mes.';
+    h.textContent = v > 0 ? `Son ${money(v / 4)} por semana. En la cuenta del mes queda separado como plata para ocio.` : 'Lo divido en 4 semanas: del 1 al 7, del 8 al 14, del 15 al 21 y del 22 a fin de mes.';
   },
   async save(form) {
     const mensual = parseMonto(fval(form, 'mensual'));
