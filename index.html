@@ -441,8 +441,8 @@ button, .chip span, .seg span { touch-action: manipulation; }
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=20261001141133"></script>
-<script>window.LIBRETA_ENV = 'web';</script>
+<script src="firebase-config.js?v=20261001142411"></script>
+<script>window.LIBRETA_ENV = 'web'; window.LIBRETA_BUILD = '20261001142411';</script>
 <script>
 (() => {
 'use strict';
@@ -550,7 +550,9 @@ function tabFromHash(h) {
   if (h === 'metas' || h === 'proyeccion') { S.ahorro = h; return 'ahorro'; }
   return TABS.includes(h) ? h : null;
 }
-S.tab = tabFromHash(location.hash.slice(1)) || tabFromHash(LS.get('tab', 'mes')) || 'mes';
+// Al abrir la app siempre arranca en Mes; si solo se recarga, se queda donde estabas.
+const NAV_TYPE = (() => { try { return performance.getEntriesByType('navigation')[0]?.type || ''; } catch { return ''; } })();
+S.tab = (NAV_TYPE === 'reload' || NAV_TYPE === 'back_forward' ? tabFromHash(location.hash.slice(1)) : null) || 'mes';
 
 /* ---------- almacenamiento ---------- */
 function artifactStore(db) {
@@ -1389,6 +1391,7 @@ function viewAjustes({ list, sal }) {
       <div class="sheet ledger">
         <div class="account"><span class="grow"><b>${esc(S.user.email)}</b><small>Tus datos se guardan en tu base de Firebase y se sincronizan entre tus dispositivos.</small></span><button class="btn btn-sm btn-ghost" data-act="logout">Cerrar sesión</button></div>
         <div class="row"><span class="grow"><b>App en el celular</b><small>${info || 'Instalala para abrirla como una app, con su ícono.'}</small></span>${deferredPrompt ? '<button class="btn btn-sm btn-primary" data-act="install">Instalar</button>' : ''}</div>
+        <div class="row"><span class="grow"><b>Versión de la app</b><small>${versionTxt()} · se actualiza sola</small></span><button class="btn btn-sm btn-ghost" data-act="update-app">Buscar actualización</button></div>
       </div></section>`;
   }
   h += `<section class="block"><div class="block-h"><h2>Ocio semanal</h2><button class="link" data-act="ocio-cfg">Editar</button></div>
@@ -1900,6 +1903,20 @@ async function backup() {
   for (const col of COLS) d[col] = S[col];
   if (await saveFile(`libreta-copia-${todayStr()}.json`, JSON.stringify(d), 'application/json')) { LS.set('ultBackup', todayStr()); toast('Copia descargada'); render(); }
 }
+function versionTxt() {
+  const b = String(window.LIBRETA_BUILD || '');
+  if (b.length < 12) return 'Actual';
+  const d = new Date(Date.UTC(+b.slice(0, 4), +b.slice(4, 6) - 1, +b.slice(6, 8), +b.slice(8, 10), +b.slice(10, 12)));
+  return `Del ${d.getDate()} de ${MES[d.getMonth()]}, ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+async function updateApp() {
+  toast('Buscando actualización…');
+  let reg = null;
+  try { reg = await navigator.serviceWorker?.getRegistration(); if (reg) await reg.update(); } catch {}
+  const reload = () => (window.__reloadOnce ? window.__reloadOnce() : location.reload());
+  // Si encontró una versión nueva, la app se recarga sola apenas se instala.
+  if (reg && (reg.installing || reg.waiting)) setTimeout(reload, 8000); else setTimeout(reload, 400);
+}
 function setTab(t) {
   if (!TABS.includes(t)) return;
   if (t === 'ajustes' && S.tab !== 'ajustes') S.prevTab = S.tab;
@@ -1966,6 +1983,7 @@ document.addEventListener('click', e => {
       S.auth.sendPasswordResetEmail(email).then(() => toast('Te mandé un email para crear una contraseña nueva.')).catch(err => { $('#login-err').textContent = authMsg(err); });
       break;
     }
+    case 'update-app': updateApp(); break;
     case 'logout':
       if (!b.dataset.armed) { b.dataset.armed = '1'; b.textContent = 'Tocá de nuevo para salir'; setTimeout(() => { if (b.isConnected) { delete b.dataset.armed; b.textContent = 'Cerrar sesión'; } }, 4000); break; }
       S.auth?.signOut(); break;
@@ -2083,6 +2101,24 @@ render();
 if (ENV === 'web') bootWeb(); else bootArtifact();
 })();
 </script>
-<script>if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));</script>
+<script>
+if ('serviceWorker' in navigator) {
+  // Cuando hay una versión nueva, se instala sola y la app se recarga (nunca con un formulario abierto).
+  const had = !!navigator.serviceWorker.controller;
+  let pend = false;
+  window.__reloadOnce = () => { if (window.__swReloaded) return; window.__swReloaded = true; location.reload(); };
+  const sheetOpen = () => { const w = document.getElementById('sheet-wrap'); return !!w && !w.hidden; };
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!had) return;
+    if (sheetOpen() && document.visibilityState === 'visible') pend = true; else window.__reloadOnce();
+  });
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') reg.update().catch(() => {});
+      else if (pend) window.__reloadOnce();
+    });
+  }).catch(() => {}));
+}
+</script>
 </body>
 </html>
