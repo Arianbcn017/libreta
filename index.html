@@ -411,6 +411,10 @@ button, .chip span, .seg span { touch-action: manipulation; }
 .sw.ocio { background: var(--accent); }
 .sw.left { background: var(--pos); }
 .sw.neg { background: var(--neg); }
+
+/* Proyección: fila del mes actual */
+tr.cur td { background: var(--accent-soft); }
+tr.cur td:first-child small { display: block; font-size: 11px; color: var(--ink-2); font-weight: 500; }
 </style>
 </head>
 <body>
@@ -443,8 +447,8 @@ button, .chip span, .seg span { touch-action: manipulation; }
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=20261001143834"></script>
-<script>window.LIBRETA_ENV = 'web'; window.LIBRETA_BUILD = '20261001143834';</script>
+<script src="firebase-config.js?v=20261001150039"></script>
+<script>window.LIBRETA_ENV = 'web'; window.LIBRETA_BUILD = '20261001150039';</script>
 <script>
 (() => {
 'use strict';
@@ -747,35 +751,43 @@ function proyeccion(list, imps, sal) {
   let base = cand.filter(y => conDatos.has(y));
   const pocos = base.length < 2;
   if (!base.length) base = [cur];
+  // Si tenés presupuesto de ocio, el ocio se proyecta con ese presupuesto (igual que en la pestaña Mes).
+  const ocioCats = ocioSet(), vOcio = (+cfg.ocioMensual || 0) > 0 && ocioCats.size ? +cfg.ocioMensual : 0;
   let vIng = 0, vCash = 0, vCard = 0;
   for (const m of list) {
     if (m.fijoId || !base.includes(ymOf(m.fecha))) continue;
     const a = toARS(m.monto, m.moneda, tcOf(m));
     if (m.tipo === 'ingreso') vIng += a;
-    else if (m.tipo === 'gasto') { if (isCard(m.cuentaId)) vCard += a / Math.max(1, m.cuotas || 1); else vCash += a; }
+    else if (m.tipo === 'gasto') {
+      if (vOcio && ocioCats.has(m.categoriaId)) continue;
+      if (isCard(m.cuentaId)) vCard += a / Math.max(1, m.cuotas || 1); else vCash += a;
+    }
   }
   vIng /= base.length; vCash /= base.length; vCard /= base.length;
   let fIng = 0, fGas = 0;
   for (const f of Object.values(S.fijos)) { if (f.activo === false) continue; const a = toARS(+f.monto || 0, f.moneda, tc); if (f.tipo === 'ingreso') fIng += a; else fGas += a; }
   const comp = {};
   for (const x of imps) if (x.cuota && !x.m.fijoId && x.ym > cur) comp[x.ym] = (comp[x.ym] || 0) + x.ars;
-  let pendIng = 0, pendGas = 0;
-  for (const p of fijosMes(cur, list)) if (!p.hecho) { const a = toARS(+p.f.monto || 0, p.f.moneda, tc); if (p.f.tipo === 'ingreso') pendIng += a; else pendGas += a; }
+  // Este mes: exactamente la misma cuenta que la pestaña Mes ("Te quedaría a fin de mes").
+  const R = cuentaDelMes(cur, list, imps, resumenMes(cur, imps));
+  let fijoCash = 0;
+  for (const m of list) if (m.tipo === 'gasto' && m.fijoId && !isCard(m.cuentaId) && ymOf(m.fecha) === cur) fijoCash += toARS(m.monto, m.moneda, tcOf(m));
   const pat = patrimonio(sal);
-  const acc0 = pat.disp + pendIng - pendGas;
+  const acc0 = pat.disp + R.faltaCobrar - R.faltaPagar - R.ocio;
+  const mesActual = { ym: cur, i: 0, ing: R.entra, fijos: fijoCash + R.faltaPagar, cuotas: R.tarjeta, vari: R.gas - R.tarjeta - fijoCash + R.ocio, ahorro: R.queda, acc: acc0, tcI: tc, defl: 1, faltaCobrar: R.faltaCobrar, faltaPagar: R.faltaPagar, ocio: R.ocio };
   let acc = acc0; const rows = [];
   for (let i = 1; i <= H; i++) {
     const ym = addM(cur, i);
     const ing = (fIng + vIng) * Math.pow(1 + aj, i);
     const fijos = fGas * Math.pow(1 + inf, i);
     const cuotas = comp[ym] || 0;
-    const vari = (vCash + (i >= 2 ? vCard : 0)) * Math.pow(1 + inf, i);
+    const vari = (vCash + (i >= 2 ? vCard : 0) + vOcio) * Math.pow(1 + inf, i);
     const ahorro = ing - fijos - cuotas - vari;
     acc += ahorro;
     rows.push({ ym, i, ing, fijos, cuotas, vari, ahorro, acc, tcI: tc * Math.pow(1 + sd, i), defl: Math.pow(1 + inf, i) });
   }
   const prom = rows.length ? rows.reduce((s, r) => s + r.ahorro, 0) / rows.length : 0;
-  return { rows, acc0, disp: pat.disp, pendIng, pendGas, base, pocos, vIng, vCash, vCard, fIng, fGas, prom, tc };
+  return { rows, acc0, mesActual, disp: pat.disp, base, pocos, vIng, vCash, vCard, vOcio, fIng, fGas, prom, tc };
 }
 function objInfo(o) {
   const aportes = Object.entries(o.aportes || {}).filter(([, a]) => a && a.monto > 0).map(([id, a]) => ({ id, ...a })).sort((a, b) => a.fecha < b.fecha ? 1 : -1);
@@ -1278,8 +1290,8 @@ function viewMetas(ctx) {
   h += `<section class="sheet hero">
     <div class="eyebrow">Para cumplir tus metas</div>
     <div class="big">${money(necesario)}<small> por mes</small></div>
-    <div class="sub">Tu ahorro proyectado es de ${money(P.prom)} por mes en promedio.</div>
-    <div style="margin-top:12px">${activas.length ? (alcanza ? `<span class="pill ok">${IC.ok}Te alcanza, sobran ${money(P.prom - necesario)} por mes</span>` : `<span class="pill bad">${IC.alert}Te faltan ${money(necesario - P.prom)} por mes</span>`) : `<span class="pill ok">${IC.ok}No tenés metas pendientes</span>`}</div>
+    <div class="sub">${P.mesActual.ahorro >= 0 ? `Este mes te sobrarían <b>${money(P.mesActual.ahorro)}</b>` : `Este mes te faltarían <b>${money(-P.mesActual.ahorro)}</b>`} (lo mismo que en Mes). En los próximos meses, ${money(P.prom)} por mes en promedio.</div>
+    <div style="margin-top:12px">${activas.length ? (alcanza ? `<span class="pill ok">${IC.ok}Te alcanza: sobran ${money(P.prom - necesario)} por mes en promedio</span>` : `<span class="pill bad">${IC.alert}Te faltan ${money(necesario - P.prom)} por mes en promedio</span>`) : `<span class="pill ok">${IC.ok}No tenés metas pendientes</span>`}</div>
   </section>`;
   h += `<div class="block-h" style="margin-top:26px"><h2>Tus metas</h2><button class="link" data-act="new-obj">Nueva meta</button></div><div class="stack">`;
   for (const { id, o, i } of objs) {
@@ -1310,7 +1322,8 @@ function viewProy(ctx) {
   const cfg = S.config;
   const fmtC = v => nf0.format(Math.round(v));
   const d0 = mode === 'USD' ? P.tc : 1;
-  const trs = [`<tr><td>Resto de ${MES[+curYM().slice(5) - 1]}</td><td>${fmtC(P.pendIng / d0)}</td><td>${fmtC(P.pendGas / d0)}</td><td>—</td><td>—</td><td>${fmtC((P.pendIng - P.pendGas) / d0)}</td><td class="strong">${fmtC(P.acc0 / d0)}</td></tr>`]
+  const C = P.mesActual;
+  const trs = [`<tr class="cur"><td>${cap(ymShort(C.ym))}<small>este mes</small></td><td>${fmtC(C.ing / d0)}</td><td>${fmtC(C.fijos / d0)}</td><td>${fmtC(C.cuotas / d0)}</td><td>${fmtC(C.vari / d0)}</td><td class="${C.ahorro < 0 ? 'neg' : ''}">${C.ahorro < 0 ? '−' : ''}${fmtC(Math.abs(C.ahorro / d0))}</td><td class="strong ${P.acc0 < 0 ? 'neg' : ''}">${fmtC(P.acc0 / d0)}</td></tr>`]
     .concat(P.rows.map(r => { const d = div(r); return `<tr><td>${cap(ymShort(r.ym))}</td><td>${fmtC(r.ing / d)}</td><td>${fmtC(r.fijos / d)}</td><td>${fmtC(r.cuotas / d)}</td><td>${fmtC(r.vari / d)}</td><td class="${r.ahorro < 0 ? 'neg' : ''}">${r.ahorro < 0 ? '−' : ''}${fmtC(Math.abs(r.ahorro / d))}</td><td class="strong ${r.acc < 0 ? 'neg' : ''}">${r.acc < 0 ? '−' : ''}${fmtC(Math.abs(r.acc / d))}</td></tr>`; })).join('');
   const labels = { ARS: 'Pesos', REAL: 'Pesos de hoy', USD: 'Dólares' };
   const expl = { ARS: 'en pesos de cada mes', REAL: 'en pesos de hoy, descontando la inflación', USD: 'en dólares, con la suba del dólar que estimaste' };
@@ -1320,7 +1333,7 @@ function viewProy(ctx) {
     <section class="sheet chart-card">
       <div class="eyebrow">Plata disponible en ${mesNombre(last ? last.ym : curYM())}</div>
       <div class="big ${endV < 0 ? 'neg' : ''}">${money(endV, mon)}</div>
-      <div class="sub muted">Ahorrarías ${money(promV, mon)} por mes en promedio, ${expl[mode]}.</div>
+      <div class="sub muted">Este mes te sobrarían ${money(P.mesActual.ahorro / d0, mon)}, como en la pestaña Mes. Después ahorrarías ${money(promV, mon)} por mes en promedio, ${expl[mode]}.</div>
       <div class="chart" id="chart"></div>
     </section>
     <section class="sheet assume" style="margin-top:12px">
@@ -1333,12 +1346,12 @@ function viewProy(ctx) {
       <div class="sheet tbl-wrap"><table><thead><tr><th>Mes</th><th>Entra</th><th>Fijos</th><th>Cuotas</th><th>Variables</th><th>Ahorro</th><th>Disponible</th></tr></thead><tbody>${trs}</tbody></table></div>
     </section>
     <section class="sheet how" style="margin-top:12px"><details><summary>Cómo se calcula</summary><ul>
-      <li><b>Arranca</b> de lo que tenés hoy en cuentas (${money(P.disp)}), sumando o restando los fijos que faltan registrar este mes.</li>
+      <li><b>Este mes</b> es la misma cuenta que la pestaña Mes: lo que entró y falta cobrar, menos lo que gastaste, lo que falta pagar${P.vOcio ? ' y el ocio que te queda' : ''}. El disponible a fin de mes arranca de lo que tenés hoy en cuentas (${money(P.disp)}).</li>
       <li><b>Entra:</b> tus ingresos fijos (${money(P.fIng)}) más el promedio de ingresos variables de ${P.base.map(y => MES[+y.slice(5) - 1]).join(', ')} (${money(P.vIng)}), con el aumento de sueldo que estimaste.</li>
       <li><b>Fijos:</b> ${money(P.fGas)} por mes, ajustados por inflación.</li>
       <li><b>Cuotas:</b> las cuotas de tarjeta que ya firmaste, en pesos fijos. Con inflación, cada cuota pesa menos.</li>
-      <li><b>Variables:</b> tu promedio de gastos sin fijos (${money(P.vCash)} en efectivo, débito y transferencias, más ${money(P.vCard)} de consumos con tarjeta desde el segundo mes), ajustado por inflación.</li>
-      <li>Registrá los fijos desde "Fijos del mes" para que no se cuenten dos veces.</li>
+      <li><b>Variables:</b> tu promedio de gastos sin fijos${P.vOcio ? ' ni ocio' : ''} (${money(P.vCash)} en efectivo, débito y transferencias, más ${money(P.vCard)} de consumos con tarjeta desde el segundo mes)${P.vOcio ? `, más tu presupuesto de ocio (${money(P.vOcio)})` : ''}, ajustado por inflación.</li>
+      <li>Registrá los fijos con "Pagué" o "Cobré" en la pestaña Mes para que no se cuenten dos veces.</li>
     </ul></details></section>`;
 }
 function niceTicks(lo, hi, count = 4) {
@@ -1351,7 +1364,7 @@ function niceTicks(lo, hi, count = 4) {
 function drawChart() {
   const box = $('#chart'), P = S._proj; if (!box || !P) return;
   const mode = S.proj, mon = mode === 'USD' ? 'USD' : 'ARS';
-  const pts = [{ ym: curYM(), i: 0, acc: P.acc0, tcI: P.tc, defl: 1, ahorro: P.pendIng - P.pendGas }, ...P.rows];
+  const pts = [P.mesActual, ...P.rows];
   const val = p => mode === 'USD' ? p.acc / p.tcI : mode === 'REAL' ? p.acc / p.defl : p.acc;
   const vals = pts.map(val);
   const W = Math.max(260, Math.floor(box.clientWidth || 600)), H = 220, L = 62, R = 12, T = 12, B = 26;
@@ -1364,6 +1377,8 @@ function drawChart() {
   let g = nt.ticks.map(t => `<line class="grid ${t === 0 ? 'zero' : ''}" x1="${L}" x2="${W - R}" y1="${y(t).toFixed(1)}" y2="${y(t).toFixed(1)}"/><text class="ax" x="${L - 8}" y="${(y(t) + 4).toFixed(1)}" text-anchor="end">${compact(t, mon)}</text>`).join('');
   const marks = pts.map((p, i) => i).filter(i => (n - 1 - i) % step === 0);
   if (marks[0] !== 0 && x(marks[0]) - lbl(pts[marks[0]], marks[0]).length * 3.4 > L + lbl(pts[0], 0).length * 6.8 + 8) marks.unshift(0);
+  // Que la etiqueta "fin de mes" no se pise con la siguiente.
+  if (marks[0] === 0 && marks.length > 2 && x(marks[1]) - lbl(pts[marks[1]], marks[1]).length * 3.4 < L + lbl(pts[0], 0).length * 6.8 + 8) marks.splice(1, 1);
   g += marks.map(i => `<text class="ax" x="${x(i).toFixed(1)}" y="${H - 6}" text-anchor="${i === 0 ? 'start' : i === n - 1 ? 'end' : 'middle'}">${lbl(pts[i], i)}</text>`).join('');
   const line = vals.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join('');
   const area = `${line}L${x(n - 1).toFixed(1)},${y(0).toFixed(1)}L${x(0).toFixed(1)},${y(0).toFixed(1)}Z`;
@@ -1381,7 +1396,7 @@ function drawChart() {
     xh.setAttribute('x1', cx); xh.setAttribute('x2', cx); xh.setAttribute('visibility', 'visible');
     dot.setAttribute('cx', cx); dot.setAttribute('cy', cy); dot.setAttribute('visibility', 'visible');
     const d = mode === 'USD' ? p.tcI : mode === 'REAL' ? p.defl : 1;
-    tip.innerHTML = `${i === 0 ? 'Fin de ' + MES[+p.ym.slice(5) - 1] : cap(mesNombre(p.ym))}<br><b>${money(v, mon)}</b><br>${i === 0 ? 'fijos pendientes' : 'ahorro del mes'}: ${money(p.ahorro / d, mon, { sign: true })}`;
+    tip.innerHTML = `${i === 0 ? 'Fin de ' + MES[+p.ym.slice(5) - 1] : cap(mesNombre(p.ym))}<br><b>${money(v, mon)}</b><br>ahorro del mes: ${money(p.ahorro / d, mon, { sign: true })}`;
     tip.hidden = false;
     const tw = tip.offsetWidth / 2;
     tip.style.left = Math.max(tw, Math.min(W - tw, cx)) + 'px';
