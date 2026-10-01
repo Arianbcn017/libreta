@@ -415,6 +415,24 @@ button, .chip span, .seg span { touch-action: manipulation; }
 /* Proyección: fila del mes actual */
 tr.cur td { background: var(--accent-soft); }
 tr.cur td:first-child small { display: block; font-size: 11px; color: var(--ink-2); font-weight: 500; }
+
+/* Ahorro simple */
+.flow .f-meta { background: var(--accent); }
+.flow .f-gap { background: repeating-linear-gradient(135deg, var(--neg) 0 3px, transparent 3px 7px); opacity: .6; }
+.sw.meta { background: var(--accent); }
+.goal-nums .goal-pct { margin-left: auto; font: 600 13px var(--font-num); color: var(--ink-2); }
+.goal-line { margin: 0; display: flex; gap: 6px; align-items: center; font-size: 14px; color: var(--ink-2); }
+.goal-line b { color: var(--ink); font-weight: 600; }
+.goal-line.ok { color: var(--pos); font-weight: 600; }
+.goal-line.bad b { color: var(--neg); }
+.goal-line svg { width: 16px; height: 16px; flex: none; }
+.chart-card .hero-lbl { font-size: 14.5px; color: var(--ink-2); font-weight: 600; }
+.chart-card .sub { font-size: 13.5px; color: var(--ink-2); }
+.chart-card .sub b { color: var(--ink); font-weight: 600; }
+.hitos .num { text-align: right; }
+.hitos .num small { display: block; font-size: 11.5px; color: var(--ink-3); font-weight: 400; margin-top: 1px; }
+.detalle { margin-top: 16px; }
+.detalle .seg-view { margin-top: 10px; }
 </style>
 </head>
 <body>
@@ -447,8 +465,8 @@ tr.cur td:first-child small { display: block; font-size: 11px; color: var(--ink-
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js?v=20261001150039"></script>
-<script>window.LIBRETA_ENV = 'web'; window.LIBRETA_BUILD = '20261001150039';</script>
+<script src="firebase-config.js?v=20261001151025"></script>
+<script>window.LIBRETA_ENV = 'web'; window.LIBRETA_BUILD = '20261001151025';</script>
 <script>
 (() => {
 'use strict';
@@ -918,7 +936,7 @@ function render() {
   }
   S.lastKey = key;
   document.querySelectorAll('.tab[data-tab]').forEach(b => b.setAttribute('aria-current', b.dataset.tab === S.tab ? 'page' : 'false'));
-  if (!g && S.tab === 'ahorro' && S.ahorro === 'proyeccion') drawChart();
+  if (!g && S.tab === 'ahorro') drawChart();
 }
 function gate() {
   if (S.status === 'private') return `<div class="sheet empty" style="margin-top:16px"><h2>Esta libreta es privada</h2><p>Solo la persona que la creó puede ver y cargar sus datos.</p></div>`;
@@ -1274,46 +1292,85 @@ function movRow(m, conFecha) {
 }
 
 /* ----- Ahorro: metas y proyección ----- */
+/* ---------- Ahorro: una sola pantalla, en palabras simples ---------- */
 function viewAhorro(ctx) {
-  const sub = S.ahorro === 'proyeccion' ? 'proyeccion' : 'metas';
-  return `<div class="subnav" role="group" aria-label="Ahorro">${[['metas', 'Metas'], ['proyeccion', 'Proyección']].map(([k, l]) => `<button data-act="ahorro" data-v="${k}" aria-pressed="${sub === k}">${l}</button>`).join('')}</div>` + (sub === 'proyeccion' ? viewProy(ctx) : viewMetas(ctx));
-}
-function viewMetas(ctx) {
-  if (!Object.keys(S.cuentas).length) return nodbBanner() + onboardingHTML();
-  const P = proyeccion(ctx.list, ctx.imps, ctx.sal);
-  const objs = Object.entries(S.objetivos).map(([id, o]) => ({ id, o, i: objInfo(o) })).sort((a, b) => String(a.o.fecha || '9').localeCompare(String(b.o.fecha || '9')));
-  const activas = objs.filter(x => !x.i.lograda && !x.i.vencida);
-  const necesario = activas.reduce((s, x) => s + toARS(x.i.porMes, x.o.moneda, S.config.tc), 0);
-  let h = nodbBanner();
-  if (!objs.length) return h + `<section class="sheet empty" style="margin-top:16px"><div class="eyebrow">Metas</div><h2>¿Para qué estás ahorrando?</h2><p>Un fondo de emergencia, un viaje, un auto. Poné cuánto necesitás y para cuándo, y te digo cuánto separar por mes y si tu ahorro proyectado alcanza.</p><button class="btn btn-primary" data-act="new-obj">Crear una meta</button></section>`;
-  const alcanza = P.prom >= necesario;
-  h += `<section class="sheet hero">
-    <div class="eyebrow">Para cumplir tus metas</div>
-    <div class="big">${money(necesario)}<small> por mes</small></div>
-    <div class="sub">${P.mesActual.ahorro >= 0 ? `Este mes te sobrarían <b>${money(P.mesActual.ahorro)}</b>` : `Este mes te faltarían <b>${money(-P.mesActual.ahorro)}</b>`} (lo mismo que en Mes). En los próximos meses, ${money(P.prom)} por mes en promedio.</div>
-    <div style="margin-top:12px">${activas.length ? (alcanza ? `<span class="pill ok">${IC.ok}Te alcanza: sobran ${money(P.prom - necesario)} por mes en promedio</span>` : `<span class="pill bad">${IC.alert}Te faltan ${money(necesario - P.prom)} por mes en promedio</span>`) : `<span class="pill ok">${IC.ok}No tenés metas pendientes</span>`}</div>
-  </section>`;
-  h += `<div class="block-h" style="margin-top:26px"><h2>Tus metas</h2><button class="link" data-act="new-obj">Nueva meta</button></div><div class="stack">`;
-  for (const { id, o, i } of objs) {
-    const mon = o.moneda || 'ARS';
-    const estado = i.lograda ? `<span class="pill ok">${IC.ok}Lograda</span>` : i.vencida ? `<span class="pill bad">${IC.alert}Venció el plazo</span>` : '';
-    h += `<article class="sheet goal">
-      <div class="goal-h"><h3>${esc(o.nombre)}</h3><button class="link" data-act="edit-obj" data-id="${id}">Editar</button></div>
-      <div class="goal-nums"><span class="num">${money(i.ahorrado, mon)}</span><span class="muted">de ${money(i.meta, mon)}</span>${estado}</div>
-      <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(i.pct * 100)}" aria-label="Avance"><span class="${i.lograda ? 'ok' : 'acc'}" style="width:${(i.pct * 100).toFixed(1)}%"></span></div>
-      <div class="goal-meta">
-        ${i.lograda ? `<span>Llegaste a la meta.</span>` : `<span>Faltan <b class="num">${money(i.falta, mon)}</b>${o.fecha ? ` · ${i.restantes > 0 ? `${i.restantes} ${i.restantes === 1 ? 'mes' : 'meses'}` : 'este mes'} (${fechaCorta(o.fecha)} ${o.fecha.slice(0, 4)})` : ''}</span>
-        <span>Separá <b class="num">${money(i.porMes, mon)}</b> por mes${mon === 'USD' ? ` ≈ ${money(i.porMes * S.config.tc)}` : ''}</span>`}
-      </div>
-      <div class="goal-actions"><button class="btn btn-sm btn-ghost" data-act="aportar" data-id="${id}">Sumar ahorro</button>${o.ejemplo ? '<span class="tag" style="align-self:center">ejemplo</span>' : ''}</div>
-    </article>`;
-  }
-  return h + '</div>';
-}
-function viewProy(ctx) {
   if (!Object.keys(S.cuentas).length) return nodbBanner() + onboardingHTML();
   const P = proyeccion(ctx.list, ctx.imps, ctx.sal);
   S._proj = P;
+  const objs = Object.entries(S.objetivos).map(([id, o]) => ({ id, o, i: objInfo(o) })).sort((a, b) => String(a.o.fecha || '9').localeCompare(String(b.o.fecha || '9')));
+  const activas = objs.filter(x => !x.i.lograda && !x.i.vencida);
+  const necesario = activas.reduce((t, x) => t + toARS(x.i.porMes, x.o.moneda, S.config.tc), 0);
+  return nodbBanner() + ahorroHero(P, objs, activas, necesario) + metasHTML(objs) + futuroHTML(P) + detalleProyHTML(P);
+}
+// Lo que te sobra este mes (igual que en Mes) y cuánto de eso va a tus metas.
+function ahorroHero(P, objs, activas, necesario) {
+  const C = P.mesActual, Mes = cap(MES[+C.ym.slice(5) - 1]), sobra = C.ahorro;
+  let h = `<section class="sheet hero mes-hero" aria-label="Ahorro de este mes">
+    <div class="eyebrow">${Mes} · este mes</div>
+    <div class="hero-lbl">${sobra >= 0 ? 'Te sobrarían para ahorrar' : 'Este mes te faltarían'}</div>
+    <div class="big ${sobra < 0 ? 'neg' : ''}">${money(Math.abs(sobra))}</div>
+    <div class="sub">Es lo mismo que "Te quedaría" en la pestaña Mes.</div>`;
+  if (!activas.length) {
+    h += objs.length ? `<div style="margin-top:12px"><span class="pill ok">${IC.ok}No tenés metas pendientes</span></div>`
+      : `<p class="note">¿Estás juntando para algo? Creá una meta y te digo cuánto separar por mes.</p><div style="margin-top:12px"><button class="btn btn-primary" data-act="new-obj">Crear una meta</button></div>`;
+    return h + '</section>';
+  }
+  const libre = sobra - necesario;
+  if (sobra > 0) {
+    const base = Math.max(sobra, necesario), fg = v => Math.max(0, v / base).toFixed(4);
+    h += `<div class="flow" role="img" aria-label="${libre >= 0 ? `De ${money(sobra)}, ${money(necesario)} van a tus metas y ${money(libre)} quedan libres` : `Te sobran ${money(sobra)} y tus metas necesitan ${money(necesario)}`}">${libre >= 0
+      ? `<span class="f-meta" style="flex-grow:${fg(necesario)}"></span><span class="f-left" style="flex-grow:${fg(libre)}"></span>`
+      : `<span class="f-meta" style="flex-grow:${fg(sobra)}"></span><span class="f-gap" style="flex-grow:${fg(-libre)}"></span>`}</div>`;
+  }
+  h += `<dl class="recibo">
+      <div class="rl"><dt><i class="sw meta"></i>Separar para tus metas</dt><dd>${money(necesario)}</dd></div>
+      ${libre >= 0 ? `<div class="rl total"><dt><i class="sw left"></i>Te queda libre</dt><dd>${money(libre)}</dd></div>`
+        : `<div class="rl total"><dt><i class="sw neg"></i>Te faltan</dt><dd class="neg">${money(-libre)}</dd></div>`}
+    </dl>
+    <div style="margin-top:12px">${libre >= 0 ? `<span class="pill ok">${IC.ok}Te alcanza para tus metas</span>` : `<span class="pill bad">${IC.alert}Este mes no te alcanza para tus metas</span>`}</div>
+  </section>`;
+  return h;
+}
+function metasHTML(objs) {
+  if (!objs.length) return '';
+  let h = `<section class="block"><div class="block-h"><h2>Tus metas</h2><button class="link" data-act="new-obj">Nueva meta</button></div><div class="stack">`;
+  for (const { id, o, i } of objs) {
+    const mon = o.moneda || 'ARS';
+    const hasta = o.fecha ? ` hasta ${MES[+o.fecha.slice(5, 7) - 1]} ${o.fecha.slice(0, 4)}` : '';
+    const linea = i.lograda ? `${IC.ok}<span>¡Llegaste a la meta!</span>`
+      : i.vencida ? `<span>Se pasó la fecha y faltan <b>${money(i.falta, mon)}</b>. Editala para ponerle una fecha nueva.</span>`
+      : `<span>Separá <b>${money(i.porMes, mon)} por mes</b>${hasta}${mon === 'USD' ? ` (≈ ${money(i.porMes * S.config.tc)})` : ''}.</span>`;
+    h += `<article class="sheet goal">
+      <div class="goal-h"><h3>${esc(o.nombre)}</h3><button class="link" data-act="edit-obj" data-id="${id}">Editar</button></div>
+      <div class="goal-nums"><span class="num">${money(i.ahorrado, mon)}</span><span class="muted">de ${money(i.meta, mon)}</span><span class="goal-pct">${Math.round(i.pct * 100)}%</span></div>
+      <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(i.pct * 100)}" aria-label="Avance de ${esc(o.nombre)}"><span class="${i.lograda ? 'ok' : 'acc'}" style="width:${(i.pct * 100).toFixed(1)}%"></span></div>
+      <p class="goal-line ${i.lograda ? 'ok' : i.vencida ? 'bad' : ''}">${linea}</p>
+      <div class="goal-actions"><button class="btn btn-sm btn-ghost" data-act="aportar" data-id="${id}">Sumar ahorro</button>${o.ejemplo ? '<span class="tag" style="align-self:center">ejemplo</span>' : ''}</div>
+    </article>`;
+  }
+  return h + '</div></section>';
+}
+// Cómo crecería tu plata: un gráfico y tres momentos clave, en pesos.
+function futuroHTML(P) {
+  const rows = P.rows; if (!rows.length) return '';
+  const last = rows[rows.length - 1], r6 = rows[Math.min(5, rows.length - 1)];
+  const cuando = r => `${cap(MES[+r.ym.slice(5) - 1])} ${r.ym.slice(0, 4)}`;
+  const hito = (lbl, sub, v, r) => `<div class="row"><span class="grow"><b>${lbl}</b><small>${sub}</small></span><span class="num ${v < 0 ? 'neg' : ''}">${money(v)}${r ? `<small>≈ ${money(Math.round(r.acc / r.tcI), 'USD')}</small>` : ''}</span></div>`;
+  return `<section class="block"><div class="block-h"><h2>Si seguís así</h2></div>
+    <div class="sheet chart-card">
+      <div class="hero-lbl" style="margin-top:0">Cómo crecería tu plata</div>
+      <div class="sub" style="margin-top:2px">${P.prom >= 0 ? `Ahorrando unos <b>${money(P.prom)} por mes</b>, según cómo venís gastando.` : `Según cómo venís gastando, <b>perderías unos ${money(-P.prom)} por mes</b>.`}</div>
+      <div class="chart" id="chart"></div>
+    </div>
+    <div class="sheet ledger hitos" style="margin-top:10px">
+      ${hito('Hoy', 'Lo que tenés en tus cuentas', P.disp)}
+      ${hito(`A fin de ${MES[+P.mesActual.ym.slice(5) - 1]}`, 'Con fijos y ocio pagados', P.acc0)}
+      ${rows.length >= 6 && r6 !== last ? hito('En 6 meses', cuando(r6), r6.acc, r6) : ''}
+      ${hito(rows.length === 12 ? 'En 1 año' : `En ${rows.length} meses`, cuando(last), last.acc, last)}
+    </div></section>`;
+}
+// El detalle completo queda plegado para quien lo quiera ver.
+function detalleProyHTML(P) {
   const mode = S.proj, last = P.rows[P.rows.length - 1];
   const div = r => mode === 'USD' ? r.tcI : mode === 'REAL' ? r.defl : 1;
   const mon = mode === 'USD' ? 'USD' : 'ARS';
@@ -1327,32 +1384,25 @@ function viewProy(ctx) {
     .concat(P.rows.map(r => { const d = div(r); return `<tr><td>${cap(ymShort(r.ym))}</td><td>${fmtC(r.ing / d)}</td><td>${fmtC(r.fijos / d)}</td><td>${fmtC(r.cuotas / d)}</td><td>${fmtC(r.vari / d)}</td><td class="${r.ahorro < 0 ? 'neg' : ''}">${r.ahorro < 0 ? '−' : ''}${fmtC(Math.abs(r.ahorro / d))}</td><td class="strong ${r.acc < 0 ? 'neg' : ''}">${r.acc < 0 ? '−' : ''}${fmtC(Math.abs(r.acc / d))}</td></tr>`; })).join('');
   const labels = { ARS: 'Pesos', REAL: 'Pesos de hoy', USD: 'Dólares' };
   const expl = { ARS: 'en pesos de cada mes', REAL: 'en pesos de hoy, descontando la inflación', USD: 'en dólares, con la suba del dólar que estimaste' };
-  return `${nodbBanner()}
-    <div class="seg-view" role="group" aria-label="Moneda de la proyección">${['ARS', 'REAL', 'USD'].map(k => `<button data-act="proj" data-v="${k}" aria-pressed="${mode === k}">${labels[k]}</button>`).join('')}</div>
-    ${P.pocos ? `<div class="banner warn"><p>La proyección usa ${P.base.length === 1 && P.base[0] === curYM() ? 'solo este mes' : `${P.base.length} ${P.base.length === 1 ? 'mes' : 'meses'}`} de datos. Mejora a medida que cargás más meses completos.</p></div>` : ''}
-    <section class="sheet chart-card">
-      <div class="eyebrow">Plata disponible en ${mesNombre(last ? last.ym : curYM())}</div>
-      <div class="big ${endV < 0 ? 'neg' : ''}">${money(endV, mon)}</div>
-      <div class="sub muted">Este mes te sobrarían ${money(P.mesActual.ahorro / d0, mon)}, como en la pestaña Mes. Después ahorrarías ${money(promV, mon)} por mes en promedio, ${expl[mode]}.</div>
-      <div class="chart" id="chart"></div>
-    </section>
-    <section class="sheet assume" style="margin-top:12px">
+  return `<details class="sheet how detalle" id="proy-det"${S.detOpen ? ' open' : ''}><summary>Ver el detalle mes a mes</summary>
+    <div class="seg-view" role="group" aria-label="Moneda del detalle">${['ARS', 'REAL', 'USD'].map(k => `<button data-act="proj" data-v="${k}" aria-pressed="${mode === k}">${labels[k]}</button>`).join('')}</div>
+    ${P.pocos ? `<p class="note">Por ahora uso ${P.base.length === 1 && P.base[0] === curYM() ? 'solo este mes' : `${P.base.length} ${P.base.length === 1 ? 'mes' : 'meses'}`} de datos. Mejora a medida que cargás más meses completos.</p>` : ''}
+    <div class="tbl-wrap" style="margin-top:12px"><table><thead><tr><th>Mes</th><th>Entra</th><th>Fijos</th><th>Cuotas</th><th>Variables</th><th>Ahorro</th><th>Disponible</th></tr></thead><tbody>${trs}</tbody></table></div>
+    <p class="note">Montos ${expl[mode]}.</p>
+    <div class="assume" style="padding:12px 0 0">
       <span>Inflación <span class="num">${pct(+cfg.inflacion || 0)}</span>/mes</span>
       <span>Sueldo <span class="num">+${pct(+cfg.ajusteIngresos || 0)}</span>/mes</span>
       <span>Dólar <span class="num">+${pct(+cfg.subaDolar || 0)}</span>/mes</span>
       <button class="link" data-act="config" style="margin-left:auto">Cambiar supuestos</button>
-    </section>
-    <section class="block"><div class="block-h"><h2>Mes a mes</h2><span class="muted">${mon === 'USD' ? 'en US$' : mode === 'REAL' ? 'en $ de hoy' : 'en $'}</span></div>
-      <div class="sheet tbl-wrap"><table><thead><tr><th>Mes</th><th>Entra</th><th>Fijos</th><th>Cuotas</th><th>Variables</th><th>Ahorro</th><th>Disponible</th></tr></thead><tbody>${trs}</tbody></table></div>
-    </section>
-    <section class="sheet how" style="margin-top:12px"><details><summary>Cómo se calcula</summary><ul>
+    </div>
+    <ul>
       <li><b>Este mes</b> es la misma cuenta que la pestaña Mes: lo que entró y falta cobrar, menos lo que gastaste, lo que falta pagar${P.vOcio ? ' y el ocio que te queda' : ''}. El disponible a fin de mes arranca de lo que tenés hoy en cuentas (${money(P.disp)}).</li>
       <li><b>Entra:</b> tus ingresos fijos (${money(P.fIng)}) más el promedio de ingresos variables de ${P.base.map(y => MES[+y.slice(5) - 1]).join(', ')} (${money(P.vIng)}), con el aumento de sueldo que estimaste.</li>
       <li><b>Fijos:</b> ${money(P.fGas)} por mes, ajustados por inflación.</li>
-      <li><b>Cuotas:</b> las cuotas de tarjeta que ya firmaste, en pesos fijos. Con inflación, cada cuota pesa menos.</li>
-      <li><b>Variables:</b> tu promedio de gastos sin fijos${P.vOcio ? ' ni ocio' : ''} (${money(P.vCash)} en efectivo, débito y transferencias, más ${money(P.vCard)} de consumos con tarjeta desde el segundo mes)${P.vOcio ? `, más tu presupuesto de ocio (${money(P.vOcio)})` : ''}, ajustado por inflación.</li>
-      <li>Registrá los fijos con "Pagué" o "Cobré" en la pestaña Mes para que no se cuenten dos veces.</li>
-    </ul></details></section>`;
+      <li><b>Cuotas:</b> las cuotas de tarjeta que ya firmaste.</li>
+      <li><b>Variables:</b> tu promedio de gastos sin fijos${P.vOcio ? ' ni ocio' : ''} (${money(P.vCash)} en efectivo, débito y transferencias, más ${money(P.vCard)} con tarjeta desde el segundo mes)${P.vOcio ? `, más tu presupuesto de ocio (${money(P.vOcio)})` : ''}, ajustado por inflación.</li>
+    </ul>
+  </details>`;
 }
 function niceTicks(lo, hi, count = 4) {
   const span = hi - lo || 1, raw = span / count, mag = Math.pow(10, Math.floor(Math.log10(raw))), n = raw / mag;
@@ -1363,7 +1413,7 @@ function niceTicks(lo, hi, count = 4) {
 }
 function drawChart() {
   const box = $('#chart'), P = S._proj; if (!box || !P) return;
-  const mode = S.proj, mon = mode === 'USD' ? 'USD' : 'ARS';
+  const mode = 'ARS', mon = 'ARS';
   const pts = [P.mesActual, ...P.rows];
   const val = p => mode === 'USD' ? p.acc / p.tcI : mode === 'REAL' ? p.acc / p.defl : p.acc;
   const vals = pts.map(val);
@@ -2066,7 +2116,8 @@ document.addEventListener('submit', async e => {
   finally { if (btn.isConnected) btn.disabled = false; }
 });
 let rz = 0;
-window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (S.tab === 'ahorro' && S.ahorro === 'proyeccion') drawChart(); }, 150); });
+document.addEventListener('toggle', e => { if (e.target && e.target.id === 'proy-det') S.detOpen = e.target.open; }, true);
+window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (S.tab === 'ahorro') drawChart(); }, 150); });
 window.addEventListener('hashchange', () => { const t = tabFromHash(location.hash.slice(1)); if (t && t !== S.tab) { S.tab = t; render(); } });
 
 /* ---------- arranque y sincronización ---------- */

@@ -1,5 +1,5 @@
 // Libreta: guarda la app en el dispositivo para que abra sin conexión.
-const VERSION = 'libreta-20261001150039';
+const VERSION = 'libreta-20261001151025';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './firebase-config.js', './icon-192.png', './icon-512.png', './apple-touch-icon.png', './favicon-32.png'];
 const CDN = ["https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js", "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js", "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"];
 self.addEventListener('install', e => {
